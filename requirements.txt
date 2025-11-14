@@ -1,0 +1,50 @@
+# Core ML frameworks
+torch>=2.0.0
+torchvision>=0.15.0
+numpy>=1.24.0
+pillow>=9.5.0
+
+# Object detection frameworks (choose one or more)
+ultralytics>=8.0.0  # YOLOv8
+# detectron2 @ git+https://github.com/facebookresearch/detectron2.git  # Uncomment for Detectron2
+# mmdet>=3.0.0  # Uncomment for MMDetection
+
+# Segmentation
+# segment-anything @ git+https://github.com/facebookresearch/segment-anything.git  # Uncomment for SAM
+
+# Data handling and augmentation
+opencv-python>=4.7.0
+albumentations>=1.3.0
+pycocotools>=2.0.6
+scikit-image>=0.20.0
+
+# Training utilities
+pytorch-lightning>=2.0.0
+timm>=0.9.0  # PyTorch Image Models
+transformers>=4.30.0  # For some vision models
+onnx>=1.14.0
+onnxruntime>=1.15.0
+
+# Experiment tracking
+wandb>=0.15.0
+tensorboard>=2.13.0
+
+# Data annotation
+# label-studio>=1.8.0  # Uncomment if using Label Studio
+# labelme>=5.2.0  # Uncomment if using LabelMe
+
+# Utilities
+tqdm>=4.65.0
+pyyaml>=6.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+pandas>=2.0.0
+scikit-learn>=1.2.0
+
+# Development
+pytest>=7.3.0
+black>=23.3.0
+flake8>=6.0.0
+mypy>=1.3.0
+jupyter>=1.0.0
+ipywidgets>=8.0.0
