@@ -1,0 +1,76 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Model files and datasets
+data/datasets/*/
+data/annotations/*.json
+!data/annotations/example.json
+models/**/*.pt
+models/**/*.pth
+models/**/*.onnx
+models/**/*.trt
+*.weights
+*.caffemodel
+
+# Logs and checkpoints
+logs/
+runs/
+checkpoints/
+outputs/
+wandb/
+mlruns/
+*.log
+
+# Reference repositories (clone these manually)
+reference/*/
+!reference/README.md
+
+# Temporary files
+*.tmp
+.cache/
+.pytest_cache/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Environment
+.env
+.env.local
