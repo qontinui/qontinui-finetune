@@ -1,0 +1,184 @@
+# YOLOv8 GUI Detection Model Configuration
+# =========================================
+# This configuration file defines YOLOv8 model settings optimized for
+# GUI element detection tasks. Supports multiple model sizes for different
+# performance/accuracy trade-offs.
+#
+# Usage: Referenced by training scripts in scripts/training/
+#        yolov8_training.py and yolov8_finetune.py
+
+# Model Architecture Selection
+# Options: nano, small, medium, large, xlarge
+# - nano:   Fastest, lowest accuracy (suitable for edge devices)
+# - small:  Good balance for GUI detection
+# - medium: Better accuracy, moderate speed (recommended)
+# - large:  High accuracy, requires more resources
+model:
+  size: "medium"
+
+  # Model variants by size with recommended specs
+  variants:
+    nano:
+      parameters: 3.2M
+      fps: 640
+      mAP50: 37.3
+      memory_gb: 1
+    small:
+      parameters: 11.2M
+      fps: 465
+      mAP50: 46.1
+      memory_gb: 2
+    medium:
+      parameters: 25.9M
+      fps: 280
+      mAP50: 50.2
+      memory_gb: 4
+    large:
+      parameters: 43.7M
+      fps: 140
+      mAP50: 52.9
+      memory_gb: 8
+
+# Model Architecture Parameters
+architecture:
+  # Backbone depth multiplier (affects model size)
+  depth_multiple: 1.0
+
+  # Backbone width multiplier (affects model width)
+  width_multiple: 1.0
+
+  # Max pooling kernel size
+  max_pool_kernel: 2
+
+  # Activation function (ReLU, SiLU, etc.)
+  activation: "SiLU"
+
+# Input/Output Configuration
+input:
+  # Image size (height, width)
+  # Standard sizes: 320, 416, 512, 640, 1024
+  size: 640
+
+  # Batch normalization for inputs
+  batch_normalize: true
+
+  # Grayscale images (for GUI which are often grayscale)
+  grayscale: false
+
+  # Number of input channels
+  channels: 3
+
+# Anchor Configuration
+# Anchors help the model detect objects at different scales
+anchors:
+  # Number of anchors per scale
+  num_anchors: 3
+
+  # Anchor scales (relative to image size)
+  # Typically 3 scales for small, medium, large objects
+  scales:
+    - [10, 13, 16, 30, 33, 23]      # Small objects
+    - [30, 61, 62, 45, 59, 119]     # Medium objects
+    - [116, 90, 156, 198, 373, 326] # Large objects
+
+# Detection Head Configuration
+detection_head:
+  # Number of detection outputs per scale
+  num_outputs: 3
+
+  # Confidence threshold for detections
+  confidence_threshold: 0.25
+
+  # IoU threshold for NMS (Non-Maximum Suppression)
+  iou_threshold: 0.45
+
+  # Maximum detections per image
+  max_detections: 300
+
+# Class Configuration for GUI Elements
+classes:
+  # Total number of classes
+  num_classes: 10
+
+  # Class definitions (used by data_template.yaml)
+  names:
+    0: "button"
+    1: "text_input"
+    2: "checkbox"
+    3: "radio_button"
+    4: "dropdown"
+    5: "slider"
+    6: "toggle"
+    7: "label"
+    8: "image"
+    9: "container"
+
+# Regularization and Loss Configuration
+regularization:
+  # L2 weight decay
+  weight_decay: 0.0005
+
+  # Label smoothing (0.0 = no smoothing, higher = more smoothing)
+  label_smoothing: 0.0
+
+  # Dropout rate (0.0 = no dropout)
+  dropout: 0.0
+
+  # Focal loss gamma (for hard negative mining)
+  # Higher values focus on hard examples
+  focal_loss_gamma: 0.0
+
+# Optimization Parameters
+optimization:
+  # Loss function weights
+  loss_weights:
+    # Weight for classification loss
+    cls: 0.5
+
+    # Weight for box regression loss
+    box: 7.5
+
+    # Weight for objectness loss
+    obj: 1.0
+
+    # Weight for IoU loss
+    iou: 0.05
+
+  # Gradient clipping (prevents gradient explosion)
+  gradient_clip_norm: 10.0
+
+  # Gradient accumulation steps
+  accumulate_grad_steps: 1
+
+# Model-specific Tweaks for GUI Detection
+gui_detection:
+  # GUI elements are often small in proportion to image
+  # This parameter helps focus on small object detection
+  focus_small_objects: true
+
+  # GUI elements often have distinct colors/contrasts
+  # This parameter adjusts detection sensitivity
+  contrast_sensitivity: "high"
+
+  # Typical GUI element aspect ratios (width/height)
+  # Useful for anchors adjustment
+  typical_aspect_ratios:
+    - 1.0    # Square buttons
+    - 0.5    # Tall input fields
+    - 2.0    # Wide sliders
+    - 3.0    # Wide containers
+
+# Export Configuration
+# Settings for converting model to different formats
+export:
+  # Export formats: onnx, openvino, tensorrt, tflite, pb, pt
+  formats:
+    - "onnx"
+    - "pt"
+    - "tensorrt"
+
+  # Quantization for reduced model size
+  quantize: false
+
+  # Inference optimization
+  optimize: true

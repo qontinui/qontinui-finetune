@@ -1,0 +1,460 @@
+# General Training Configuration
+# ==============================
+# This configuration file defines common training parameters and settings
+# for YOLOv8 model training. These settings work in conjunction with
+# yolov8_gui_detection.yaml and data_template.yaml.
+#
+# Usage: Referenced by:
+#        - scripts/training/yolov8_training.py
+#        - scripts/training/yolov8_finetune.py
+#        - scripts/training/yolov8_eval.py
+#        - scripts/training/yolov8_export.py
+
+# ============================================================================
+# TRAINING HYPERPARAMETERS
+# ============================================================================
+
+training:
+  # Training duration
+  epochs: 100
+
+  # Training patience for early stopping
+  # Stops training if validation metric doesn't improve for N epochs
+  patience: 20
+
+  # Number of training workers for data loading
+  workers: 8
+
+  # Whether to cache training images in memory
+  cache_images: true
+
+  # Training mode options: "train", "finetune", "resume"
+  mode: "train"
+
+  # Checkpoint to resume from (if mode: "resume")
+  resume_checkpoint: null
+
+# ============================================================================
+# BATCH AND LEARNING RATE SETTINGS
+# ============================================================================
+
+batch:
+  # Batch size for training
+  # Larger batches = more stable training but require more memory
+  # Recommended: GPU with 8GB use 16, 16GB use 32, 24GB use 48
+  size: 32
+
+  # Batch size for validation
+  # Usually same as training batch size
+  val_batch_size: 32
+
+  # Batch size for testing/inference
+  # Can be larger than training as no gradients are computed
+  test_batch_size: 64
+
+learning_rate:
+  # Initial learning rate
+  # Typical range: 0.001 - 0.01 for training from scratch
+  # Typical range: 0.0001 - 0.001 for fine-tuning
+  initial: 0.001
+
+  # Final learning rate (after decay)
+  final: 0.0001
+
+  # Learning rate scheduler type
+  # Options: "linear", "cosine", "exponential", "step"
+  scheduler: "cosine"
+
+  # Warmup epochs (gradually increase LR at start of training)
+  warmup_epochs: 3.0
+
+  # Warmup momentum (initial momentum during warmup)
+  warmup_momentum: 0.8
+
+  # Warmup bias learning rate
+  warmup_bias_lr: 0.1
+
+# ============================================================================
+# OPTIMIZER SETTINGS
+# ============================================================================
+
+optimizer:
+  # Optimizer type
+  # Options: "SGD", "Adam", "AdamW"
+  type: "SGD"
+
+  # Momentum (for SGD)
+  momentum: 0.937
+
+  # Nesterov momentum
+  nesterov: true
+
+  # Weight decay / L2 regularization
+  weight_decay: 0.0005
+
+  # Beta values (for Adam optimizers)
+  beta1: 0.9      # First moment (momentum)
+  beta2: 0.999    # Second moment
+
+# ============================================================================
+# DATA AUGMENTATION SETTINGS
+# ============================================================================
+
+augmentation:
+  # Mosaic augmentation probability (0.0 - 1.0)
+  # Combines 4 images in a grid pattern
+  # Highly effective for object detection
+  mosaic: 1.0
+
+  # Mosaic augmentation boundary (default 4)
+  mosaic_border: 4
+
+  # Copy-paste augmentation (0.0 - 1.0)
+  # Copies objects between images
+  copy_paste: 0.0
+
+  # Rotation range in degrees (-45 to 45 typical)
+  degrees: 0.0
+
+  # Random perspective transformation
+  perspective: 0.0
+
+  # Translation range (fraction of image size)
+  translate: 0.1
+
+  # Scale range (0.5 = +/- 50%)
+  scale: 0.5
+
+  # Horizontal flip probability
+  flipud: 0.0
+
+  # Vertical flip probability (usually 0 for GUI elements)
+  fliplr: 0.5
+
+  # Mosaic probability during training
+  # Disabled after this fraction of epochs
+  mosaic_prob: 1.0
+
+  # Mixup augmentation (0.0 - 1.0)
+  # Blends two images and their labels
+  mixup: 0.0
+
+  # HSV color space augmentation
+  hsv_h: 0.015    # Hue gain
+  hsv_s: 0.7      # Saturation gain
+  hsv_v: 0.4      # Value (brightness) gain
+
+  # Random erasing augmentation
+  erasing: 0.0
+
+  # Crop after padding (used with perspective transform)
+  crop_fraction: 1.0
+
+  # Image compression (JPEG quality: 0-100)
+  # 0 = no compression, 90 = high compression
+  jpeg_quality: 0
+
+  # Gaussian blur (sigma: 0-1.0)
+  blur: 0.0
+
+  # Gaussian noise
+  noise: 0.0
+
+  # Contrast adjustment (0.5-1.5)
+  contrast: 0.0
+
+# ============================================================================
+# HARDWARE AND DEVICE SETTINGS
+# ============================================================================
+
+hardware:
+  # Device selection
+  # Options: "0" (first GPU), "0,1,2,3" (multi-GPU), "cpu"
+  device: "0"
+
+  # Number of GPUs (if using multiple GPUs)
+  num_gpus: 1
+
+  # Mixed precision training (FP16)
+  # Reduces memory usage and speeds up training
+  amp: true
+
+  # Distributed training
+  distributed: false
+
+  # Number of processes for distributed training
+  num_processes: 1
+
+  # Memory optimization
+  memory_fraction: 0.9  # Use 90% of available GPU memory
+
+  # Gradient checkpointing (trades memory for compute)
+  gradient_checkpointing: false
+
+  # Batch normalization type
+  # Options: "bn", "syncbn" (for multi-GPU)
+  norm_type: "bn"
+
+# ============================================================================
+# CHECKPOINTING AND LOGGING
+# ============================================================================
+
+checkpointing:
+  # Save checkpoint every N epochs
+  save_period: 10
+
+  # Keep only the best checkpoint
+  save_best_only: false
+
+  # Keep last N checkpoints
+  keep_last_n: 3
+
+  # Checkpoint directory (relative to project root)
+  checkpoint_dir: "runs/train/gui_detection"
+
+  # Whether to save checkpoint with optimizer state
+  save_optimizer_state: true
+
+  # Whether to save training history
+  save_history: true
+
+logging:
+  # Logging directory
+  log_dir: "runs/train/gui_detection/logs"
+
+  # Log every N batches
+  log_interval: 50
+
+  # Use Weights & Biases for experiment tracking
+  use_wandb: false
+
+  # Weights & Biases project name
+  wandb_project: "yolov8-gui-detection"
+
+  # Use TensorBoard
+  use_tensorboard: true
+
+  # TensorBoard log directory
+  tensorboard_dir: "runs/train/gui_detection/tb_logs"
+
+  # Save training metrics
+  save_metrics: true
+
+  # Print detailed training info
+  verbose: true
+
+# ============================================================================
+# VALIDATION AND EVALUATION
+# ============================================================================
+
+validation:
+  # Run validation every N epochs
+  val_interval: 1
+
+  # Metrics to compute during validation
+  metrics:
+    - "mAP50"    # Mean Average Precision at IoU=0.5
+    - "mAP50-95" # Mean Average Precision at IoU=0.5-0.95
+    - "precision"
+    - "recall"
+    - "f1"
+
+  # Confidence threshold for validation
+  conf_threshold: 0.001
+
+  # IoU threshold for NMS during validation
+  iou_threshold: 0.6
+
+  # Maximum number of detections per image
+  max_detections: 300
+
+  # Save validation predictions
+  save_predictions: true
+
+  # Visualize predictions during validation
+  visualize: false
+
+  # Number of validation samples to visualize
+  num_visualizations: 10
+
+# ============================================================================
+# MODEL FREEZING AND TRANSFER LEARNING
+# ============================================================================
+
+transfer_learning:
+  # Freeze backbone during training (for fine-tuning)
+  freeze_backbone: false
+
+  # Freeze initial N layers
+  freeze_layers: 0
+
+  # Start unfreezing layers after N epochs
+  unfreeze_after: 10
+
+  # Learning rate multiplier for frozen layers
+  frozen_lr_multiplier: 0.1
+
+  # Use pretrained weights
+  pretrained: true
+
+  # Pretrained weights source
+  # Options: "yolov8n.pt", "yolov8s.pt", "yolov8m.pt", "yolov8l.pt"
+  pretrained_model: "yolov8m.pt"
+
+# ============================================================================
+# DATA AND PREPROCESSING
+# ============================================================================
+
+data:
+  # Path to dataset configuration file
+  data_config: "models/configs/data_template.yaml"
+
+  # Image normalization
+  normalize: true
+
+  # Number of data loading workers
+  num_workers: 8
+
+  # Pin memory for DataLoader
+  pin_memory: true
+
+  # Prefetch batches
+  prefetch_factor: 2
+
+# ============================================================================
+# LOSS WEIGHTS
+# ============================================================================
+
+loss:
+  # Classification loss weight
+  cls_weight: 0.5
+
+  # Localization/Box loss weight
+  box_weight: 7.5
+
+  # Objectness loss weight
+  obj_weight: 1.0
+
+  # IoU loss weight
+  iou_weight: 0.05
+
+  # Focal loss gamma (for hard negative mining)
+  # Set > 0 to enable focal loss
+  focal_loss_gamma: 0.0
+
+# ============================================================================
+# OUTPUT AND EXPORT
+# ============================================================================
+
+output:
+  # Output directory for results
+  output_dir: "runs/train/gui_detection"
+
+  # Save final model as ONNX
+  export_onnx: true
+
+  # Save final model as TensorRT
+  export_tensorrt: false
+
+  # Save final model as OpenVINO
+  export_openvino: false
+
+  # Save training plots
+  save_plots: true
+
+  # Plot types: "loss", "accuracy", "precision", "recall", "mAP"
+  plot_types:
+    - "loss_curve"
+    - "accuracy_curves"
+    - "precision_recall"
+    - "confusion_matrix"
+    - "class_distribution"
+
+# ============================================================================
+# REPRODUCIBILITY
+# ============================================================================
+
+reproducibility:
+  # Random seed for reproducibility
+  seed: 42
+
+  # Deterministic operations (may be slower)
+  deterministic: true
+
+  # Disable cuDNN benchmark (makes training slower but reproducible)
+  cudnn_benchmark: false
+
+# ============================================================================
+# ADVANCED SETTINGS
+# ============================================================================
+
+advanced:
+  # Gradient accumulation steps (simulate larger batch size)
+  accumulate_grad_steps: 1
+
+  # Clip gradients by norm
+  gradient_clip: 10.0
+
+  # Clip gradient value
+  gradient_clip_value: null
+
+  # EMA (Exponential Moving Average) weight
+  ema_decay: 0.9999
+
+  # EMA update frequency (updates every N batches)
+  ema_update_freq: 10
+
+  # Half precision (FP16) training
+  half_precision: false
+
+  # Stochastic depth (drop path) rate
+  drop_path_rate: 0.0
+
+  # Label smoothing
+  label_smoothing: 0.0
+
+  # Dynamic loss scaling (for AMP training)
+  dynamic_loss_scaling: true
+
+  # Exponential Moving Average bias
+  ema_bias_correction: true
+
+# ============================================================================
+# INFERENCE AND TESTING SETTINGS
+# ============================================================================
+
+inference:
+  # Confidence threshold for inference
+  conf_threshold: 0.25
+
+  # IoU threshold for NMS
+  iou_threshold: 0.45
+
+  # Maximum detections per image
+  max_detections: 300
+
+  # Save inference results
+  save_results: true
+
+  # Visualize inference results
+  visualize: true
+
+  # Result format
+  # Options: "json", "xml", "yolo", "coco"
+  result_format: "json"
+
+# ============================================================================
+# NOTES FOR GUI DETECTION
+# ============================================================================
+
+# GUI-Specific Recommendations:
+# 1. Use mosaic augmentation (set to 1.0) - helps with dense object detection
+# 2. Reduce degrees/perspective/translate for GUI (GUI elements are usually orthogonal)
+# 3. Use flip augmentation for horizontal invariance
+# 4. Consider using IoU loss for better box regression
+# 5. GUI elements are often small - ensure adequate training epochs
+# 6. Use metric: mAP50 for fast validation, mAP50-95 for comprehensive evaluation
+# 7. Consider class weights if some GUI elements are rarer
+# 8. Save predictions for manual inspection of failure cases
+# 9. Use transfer learning with ImageNet pre-trained models
+# 10. Monitor loss curves and adjust learning rate if needed

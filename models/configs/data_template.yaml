@@ -1,0 +1,221 @@
+# YOLO Dataset Configuration Template
+# ====================================
+# This template defines the structure and metadata for YOLO datasets.
+# Copy this template and customize paths/classes for your specific dataset.
+#
+# Usage: Referenced by:
+#        - scripts/training/yolov8_training.py
+#        - scripts/training/yolov8_finetune.py
+#        - scripts/data/prepare_dataset.py
+#
+# YOLO expects the following directory structure:
+# dataset/
+#   ├── images/
+#   │   ├── train/  (training images)
+#   │   ├── val/    (validation images)
+#   │   └── test/   (test images, optional)
+#   └── labels/
+#       ├── train/  (training annotations - .txt files)
+#       ├── val/    (validation annotations - .txt files)
+#       └── test/   (test annotations - .txt files, optional)
+
+# Path Configuration
+# Use absolute paths or paths relative to the dataset root
+path: "/home/user/qontinui-finetune/data/gui_detection"
+
+# Training Dataset
+# Images and labels should have corresponding names
+# Images: train_0001.jpg, train_0002.jpg, ...
+# Labels: train_0001.txt, train_0002.txt, ...
+train:
+  # Relative or absolute path to training images directory
+  images: "images/train"
+
+  # Relative or absolute path to training labels directory
+  labels: "labels/train"
+
+  # Expected statistics (for documentation)
+  num_images: 0        # Will be populated after dataset preparation
+  num_annotations: 0   # Will be populated after dataset preparation
+
+# Validation Dataset
+# Used to tune hyperparameters and monitor training
+val:
+  # Relative or absolute path to validation images directory
+  images: "images/val"
+
+  # Relative or absolute path to validation labels directory
+  labels: "labels/val"
+
+  # Expected statistics (for documentation)
+  num_images: 0
+  num_annotations: 0
+
+# Test Dataset (Optional)
+# Final evaluation dataset - keep separate for unbiased evaluation
+test:
+  # Relative or absolute path to test images directory
+  images: "images/test"
+
+  # Relative or absolute path to test labels directory
+  labels: "labels/test"
+
+  # Set to false if test set is not available
+  enabled: false
+
+  # Expected statistics (for documentation)
+  num_images: 0
+  num_annotations: 0
+
+# Dataset Split Configuration
+# Used by prepare_dataset.py when splitting a combined dataset
+split:
+  # Training split ratio (0.0 - 1.0)
+  train_ratio: 0.7
+
+  # Validation split ratio (0.0 - 1.0)
+  val_ratio: 0.2
+
+  # Test split ratio (0.0 - 1.0)
+  test_ratio: 0.1
+
+  # Random seed for reproducible splits
+  random_seed: 42
+
+# Class Configuration
+# Must match the classes defined in yolov8_gui_detection.yaml
+classes:
+  # Total number of classes (must match model config)
+  num_classes: 10
+
+  # Class name to index mapping
+  # Format: index: "class_name"
+  # These names are used for visualization and evaluation reports
+  names:
+    0: "button"           # Clickable button elements
+    1: "text_input"       # Text input fields
+    2: "checkbox"         # Checkbox controls
+    3: "radio_button"     # Radio button controls
+    4: "dropdown"         # Dropdown/select menus
+    5: "slider"           # Slider controls
+    6: "toggle"           # Toggle switches
+    7: "label"            # Text labels and headers
+    8: "image"            # Image elements
+    9: "container"        # Container/layout elements
+
+# Label Format Configuration
+# Defines how annotations are stored in .txt files
+format:
+  # YOLO format: <class_id> <x_center> <y_center> <width> <height>
+  # All coordinates are normalized to [0, 1] range
+  type: "yolo"
+
+  # Coordinate system
+  # "normalized": [0, 1] relative to image dimensions
+  # "absolute": pixel coordinates
+  coordinates: "normalized"
+
+  # Number of fields per line in label file
+  fields_per_line: 5
+
+# Data Augmentation Configuration
+# Note: Training augmentation is defined in training_config.yaml
+# This section documents dataset properties for augmentation planning
+augmentation:
+  # Expected image dimensions in dataset
+  image_width: 640
+  image_height: 640
+
+  # Aspect ratio constraints
+  min_aspect_ratio: 0.5
+  max_aspect_ratio: 2.0
+
+  # Object size constraints (relative to image)
+  min_object_size: 0.005    # 5 pixels on 640x640 image
+  max_object_size: 0.95     # 95% of image
+
+  # Color space information
+  color_space: "RGB"
+
+  # Common augmentations effective for GUI detection
+  recommended_augmentations:
+    - "mosaic"           # Combine 4 images (good for dense detection)
+    - "random_perspective"  # Rotation and perspective transforms
+    - "hsv_augment"      # Color space augmentation
+    - "flip"             # Horizontal/vertical flips
+    - "scale"            # Random scaling
+    - "translate"        # Random translation
+    - "noise"            # Gaussian noise
+    - "blur"             # Gaussian blur
+    - "contrast"         # Contrast adjustment
+    - "brightness"       # Brightness adjustment
+
+# Dataset Statistics and Metadata
+metadata:
+  # Dataset name and description
+  name: "GUI Detection Dataset"
+  description: "Dataset for training YOLOv8 models on GUI element detection"
+
+  # Version information
+  version: "1.0"
+  creation_date: "2024-11-14"
+
+  # Data source information
+  sources:
+    - "Screenshots from desktop applications"
+    - "Web UI captures"
+    - "Mobile UI screenshots"
+
+  # Known limitations or properties
+  notes: |
+    - Dataset includes GUI elements from multiple platforms (Windows, macOS, Linux, Web, Mobile)
+    - Images are normalized to 640x640 resolution
+    - Some GUI elements may be partially occluded
+    - Dataset is balanced across object classes
+
+  # Annotation guidelines
+  annotation_guidelines: |
+    1. Bounding boxes should tightly encircle the GUI element
+    2. Do not include shadows or reflections
+    3. Partial elements at image edges should be included
+    4. Overlapping elements should be labeled separately
+    5. Text inside elements should not be labeled separately
+
+# Data Quality Checks
+quality:
+  # Validate that all images and labels exist
+  validate_pairs: true
+
+  # Check for empty label files
+  allow_empty_labels: false
+
+  # Validate label coordinates are in [0, 1] range
+  validate_coordinates: true
+
+  # Remove duplicate images (by hash)
+  remove_duplicates: true
+
+  # Check image dimensions
+  validate_image_dimensions: true
+
+  # Minimum image dimension (prevent very small images)
+  min_image_dimension: 320
+
+  # Maximum image dimension (prevent very large images)
+  max_image_dimension: 2048
+
+# Caching and Preprocessing
+preprocessing:
+  # Cache preprocessed images in memory during training
+  cache_images: true
+
+  # Image format for caching (PNG, JPG)
+  cache_format: "JPG"
+
+  # Normalize images
+  normalize: true
+
+  # Normalization parameters (standard ImageNet values)
+  normalization:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
