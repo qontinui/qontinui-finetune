@@ -146,7 +146,9 @@ class InferenceEngine:
 
         # Generate colors for each class
         np.random.seed(42)
-        colors = np.random.randint(0, 255, size=(len(self.class_names) + 1, 3), dtype=np.uint8)
+        colors = np.random.randint(
+            0, 255, size=(len(self.class_names) + 1, 3), dtype=np.uint8
+        )
 
         for det in detections:
             bbox = det["bbox"]
@@ -162,7 +164,9 @@ class InferenceEngine:
             cv2.rectangle(viz_image, (x1, y1), (x2, y2), color, 2)
 
             # Draw label
-            class_name = self.class_names[cls] if cls < len(self.class_names) else f"Class {cls}"
+            class_name = (
+                self.class_names[cls] if cls < len(self.class_names) else f"Class {cls}"
+            )
             label = f"{class_name} {conf:.2f}"
 
             # Get text size for background
@@ -327,11 +331,13 @@ class ONNXInferenceEngine(InferenceEngine):
             x2 = max(0, min(x2, orig_w))
             y2 = max(0, min(y2, orig_h))
 
-            detections.append({
-                "bbox": [x1, y1, x2, y2],
-                "class": class_id,
-                "confidence": confidence,
-            })
+            detections.append(
+                {
+                    "bbox": [x1, y1, x2, y2],
+                    "class": class_id,
+                    "confidence": confidence,
+                }
+            )
 
         # Apply NMS
         detections = self.apply_nms(detections)
@@ -373,8 +379,10 @@ class ONNXInferenceEngine(InferenceEngine):
 
                 # Remove overlapping detections
                 dets = [
-                    det for det in dets
-                    if self.calculate_iou(best["bbox"], det["bbox"]) < self.iou_threshold
+                    det
+                    for det in dets
+                    if self.calculate_iou(best["bbox"], det["bbox"])
+                    < self.iou_threshold
                 ]
 
             final_detections.extend(keep)
@@ -460,11 +468,13 @@ class YOLOv8InferenceEngine(InferenceEngine):
                 confidences = result.boxes.conf.cpu().numpy()
 
                 for box, cls, conf in zip(boxes, classes, confidences):
-                    detections.append({
-                        "bbox": box.tolist(),
-                        "class": int(cls),
-                        "confidence": float(conf),
-                    })
+                    detections.append(
+                        {
+                            "bbox": box.tolist(),
+                            "class": int(cls),
+                            "confidence": float(conf),
+                        }
+                    )
 
         return detections
 
