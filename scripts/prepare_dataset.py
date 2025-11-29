@@ -358,7 +358,9 @@ class DatasetValidator:
 
                         # Validate coordinates are in [0, 1] range
                         _, x, y, w, h = map(float, parts[:5])
-                        if not (0 <= x <= 1 and 0 <= y <= 1 and 0 <= w <= 1 and 0 <= h <= 1):
+                        if not (
+                            0 <= x <= 1 and 0 <= y <= 1 and 0 <= w <= 1 and 0 <= h <= 1
+                        ):
                             errors.append(
                                 f"{label_file.name}:{line_num} - "
                                 f"Coordinates out of range [0, 1]: {x}, {y}, {w}, {h}"
@@ -584,7 +586,11 @@ class DatasetStatistics:
         logger.info(f"Total Annotations: {stats['num_annotations']}")
         logger.info(f"\nClass Distribution:")
         for class_idx, count in sorted(stats["class_distribution"].items()):
-            class_name = class_names[class_idx] if class_idx < len(class_names) else f"Class {class_idx}"
+            class_name = (
+                class_names[class_idx]
+                if class_idx < len(class_names)
+                else f"Class {class_idx}"
+            )
             logger.info(f"  {class_name}: {count}")
         logger.info(f"\nAnnotations per Image:")
         logger.info(f"  Mean: {stats['annotations_stats']['mean']:.2f}")
@@ -597,7 +603,11 @@ class DatasetStatistics:
         output_file = self.dataset_path / "statistics.json"
         # Convert numpy types to native Python types for JSON serialization
         stats_json = {
-            k: (v if not isinstance(v, (np.integer, np.floating, np.ndarray)) else v.tolist() if isinstance(v, np.ndarray) else float(v))
+            k: (
+                v
+                if not isinstance(v, (np.integer, np.floating, np.ndarray))
+                else v.tolist() if isinstance(v, np.ndarray) else float(v)
+            )
             for k, v in stats.items()
             if k not in ["bbox_sizes", "image_sizes", "annotations_per_image"]
         }
@@ -641,9 +651,7 @@ def main():
     convert_parser.add_argument(
         "--coco-json", type=Path, help="COCO JSON file (for COCO format)"
     )
-    convert_parser.add_argument(
-        "--images-dir", type=Path, help="Images directory"
-    )
+    convert_parser.add_argument("--images-dir", type=Path, help="Images directory")
     convert_parser.add_argument(
         "--labels-dir", type=Path, help="Labels directory (for YOLO format)"
     )
@@ -669,10 +677,16 @@ def main():
         "--output", type=Path, required=True, help="Output path for split dataset"
     )
     split_parser.add_argument(
-        "--train-ratio", type=float, default=0.7, help="Training set ratio (default: 0.7)"
+        "--train-ratio",
+        type=float,
+        default=0.7,
+        help="Training set ratio (default: 0.7)",
     )
     split_parser.add_argument(
-        "--val-ratio", type=float, default=0.2, help="Validation set ratio (default: 0.2)"
+        "--val-ratio",
+        type=float,
+        default=0.2,
+        help="Validation set ratio (default: 0.2)",
     )
     split_parser.add_argument(
         "--test-ratio", type=float, default=0.1, help="Test set ratio (default: 0.1)"

@@ -79,12 +79,8 @@ class ModelEvaluator:
         """
         if format == "xywh":
             # Convert to xyxy format
-            box1 = np.array(
-                [box1[0], box1[1], box1[0] + box1[2], box1[1] + box1[3]]
-            )
-            box2 = np.array(
-                [box2[0], box2[1], box2[0] + box2[2], box2[1] + box2[3]]
-            )
+            box1 = np.array([box1[0], box1[1], box1[0] + box1[2], box1[1] + box1[3]])
+            box2 = np.array([box2[0], box2[1], box2[0] + box2[2], box2[1] + box2[3]])
 
         # Calculate intersection area
         x1 = max(box1[0], box2[0])
@@ -102,7 +98,10 @@ class ModelEvaluator:
         return intersection / union if union > 0 else 0
 
     def calculate_map(
-        self, predictions: List[Dict], ground_truths: List[Dict], iou_threshold: float = 0.5
+        self,
+        predictions: List[Dict],
+        ground_truths: List[Dict],
+        iou_threshold: float = 0.5,
     ) -> Dict:
         """
         Calculate mean Average Precision (mAP).
@@ -135,7 +134,9 @@ class ModelEvaluator:
 
         # Calculate AP for each class
         class_aps = {}
-        all_classes = set(list(class_predictions.keys()) + list(class_ground_truths.keys()))
+        all_classes = set(
+            list(class_predictions.keys()) + list(class_ground_truths.keys())
+        )
 
         for cls in all_classes:
             preds = class_predictions.get(cls, [])
@@ -164,9 +165,7 @@ class ModelEvaluator:
                     if gt_matched[j]:
                         continue
 
-                    iou = self.calculate_iou(
-                        pred["bbox"], gt["bbox"], format="xyxy"
-                    )
+                    iou = self.calculate_iou(pred["bbox"], gt["bbox"], format="xyxy")
 
                     if iou > best_iou:
                         best_iou = iou
@@ -424,7 +423,9 @@ class YOLOv8Evaluator(ModelEvaluator):
         logger.info(f"Loading YOLOv8 model from {self.model_path}")
         self.model = YOLO(str(self.model_path))
 
-    def evaluate(self, save_visualizations: bool = True, max_visualizations: int = 20) -> Dict:
+    def evaluate(
+        self, save_visualizations: bool = True, max_visualizations: int = 20
+    ) -> Dict:
         """
         Run full evaluation.
 
@@ -449,13 +450,25 @@ class YOLOv8Evaluator(ModelEvaluator):
         results = {
             "mAP50": float(val_results.box.map50),
             "mAP50-95": float(val_results.box.map),
-            "precision": float(val_results.box.p.mean()) if hasattr(val_results.box, 'p') else 0.0,
-            "recall": float(val_results.box.r.mean()) if hasattr(val_results.box, 'r') else 0.0,
-            "f1": float(val_results.box.f1.mean()) if hasattr(val_results.box, 'f1') else 0.0,
+            "precision": (
+                float(val_results.box.p.mean())
+                if hasattr(val_results.box, "p")
+                else 0.0
+            ),
+            "recall": (
+                float(val_results.box.r.mean())
+                if hasattr(val_results.box, "r")
+                else 0.0
+            ),
+            "f1": (
+                float(val_results.box.f1.mean())
+                if hasattr(val_results.box, "f1")
+                else 0.0
+            ),
         }
 
         # Per-class metrics
-        if hasattr(val_results.box, 'ap_class_index'):
+        if hasattr(val_results.box, "ap_class_index"):
             class_names = self.model.names
             results["per_class"] = {}
 
@@ -543,9 +556,7 @@ class YOLOv8Evaluator(ModelEvaluator):
 
 def main():
     """Main entry point for evaluation."""
-    parser = argparse.ArgumentParser(
-        description="Evaluate object detection models"
-    )
+    parser = argparse.ArgumentParser(description="Evaluate object detection models")
 
     parser.add_argument(
         "--model",

@@ -140,6 +140,7 @@ class YOLOv8Exporter(ModelExporter):
         output_path = self.output_dir / f"{self.model_name}.onnx"
         if Path(export_path).exists():
             import shutil
+
             shutil.copy2(export_path, output_path)
             logger.info(f"ONNX model saved to: {output_path}")
         else:
@@ -148,6 +149,7 @@ class YOLOv8Exporter(ModelExporter):
         # Verify ONNX model
         try:
             import onnx
+
             onnx_model = onnx.load(str(output_path))
             onnx.checker.check_model(onnx_model)
             logger.info("ONNX model validation successful")
@@ -201,6 +203,7 @@ class YOLOv8Exporter(ModelExporter):
         output_path = self.output_dir / f"{self.model_name}.engine"
         if Path(export_path).exists():
             import shutil
+
             shutil.copy2(export_path, output_path)
             logger.info(f"TensorRT engine saved to: {output_path}")
         else:
@@ -243,6 +246,7 @@ class YOLOv8Exporter(ModelExporter):
         output_path = self.output_dir / f"{self.model_name}.mlpackage"
         if Path(export_path).exists():
             import shutil
+
             if output_path.exists():
                 shutil.rmtree(output_path)
             shutil.copytree(export_path, output_path)
@@ -283,6 +287,7 @@ class YOLOv8Exporter(ModelExporter):
         output_path = self.output_dir / f"{self.model_name}.torchscript"
         if Path(export_path).exists():
             import shutil
+
             shutil.copy2(export_path, output_path)
             logger.info(f"TorchScript model saved to: {output_path}")
         else:
@@ -322,6 +327,7 @@ class YOLOv8Exporter(ModelExporter):
         output_path = self.output_dir / f"{self.model_name}_openvino_model"
         if Path(export_path).exists():
             import shutil
+
             if output_path.exists():
                 shutil.rmtree(output_path)
             shutil.copytree(export_path, output_path)
@@ -402,6 +408,7 @@ class YOLOv8Exporter(ModelExporter):
             test_input = np.random.randint(0, 255, (640, 640, 3), dtype=np.uint8)
         else:
             import cv2
+
             test_input = cv2.imread(str(test_image))
             test_input = cv2.cvtColor(test_input, cv2.COLOR_BGR2RGB)
 
@@ -414,9 +421,7 @@ class YOLOv8Exporter(ModelExporter):
 
             # Get predictions from exported model
             if exported_format == "onnx":
-                exported_results = self._validate_onnx(
-                    exported_model_path, test_input
-                )
+                exported_results = self._validate_onnx(exported_model_path, test_input)
             elif exported_format == "tensorrt" or exported_format == "engine":
                 logger.info("TensorRT validation requires runtime engine")
                 return True
@@ -434,9 +439,7 @@ class YOLOv8Exporter(ModelExporter):
             logger.error(f"Validation failed: {e}")
             return False
 
-    def _validate_onnx(
-        self, onnx_path: Path, test_input: np.ndarray
-    ) -> np.ndarray:
+    def _validate_onnx(self, onnx_path: Path, test_input: np.ndarray) -> np.ndarray:
         """
         Validate ONNX model.
 
@@ -465,6 +468,7 @@ class YOLOv8Exporter(ModelExporter):
 
         # Preprocess input
         import cv2
+
         img = cv2.resize(test_input, (640, 640))
         img = img.transpose(2, 0, 1)  # HWC to CHW
         img = img.astype(np.float32) / 255.0
@@ -543,6 +547,7 @@ class YOLOv8Exporter(ModelExporter):
 
         # Preprocess input
         import cv2
+
         img = cv2.resize(test_input, (640, 640))
         img = img.transpose(2, 0, 1)
         img = img.astype(np.float32) / 255.0
@@ -609,7 +614,15 @@ def main():
         type=str,
         nargs="+",
         default=["onnx"],
-        choices=["onnx", "tensorrt", "engine", "coreml", "torchscript", "openvino", "all"],
+        choices=[
+            "onnx",
+            "tensorrt",
+            "engine",
+            "coreml",
+            "torchscript",
+            "openvino",
+            "all",
+        ],
         help="Export format(s) (default: onnx)",
     )
     parser.add_argument(
@@ -729,7 +742,9 @@ def main():
     logger.info(f"\n{'='*60}")
     logger.info("Export Summary")
     logger.info(f"{'='*60}")
-    logger.info(f"Successfully exported {len(exported_models)}/{len(args.format)} formats:")
+    logger.info(
+        f"Successfully exported {len(exported_models)}/{len(args.format)} formats:"
+    )
     for fmt, path in exported_models.items():
         logger.info(f"  {fmt}: {path}")
     logger.info(f"{'='*60}\n")
