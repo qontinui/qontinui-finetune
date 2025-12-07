@@ -262,9 +262,9 @@ class Detectron2Trainer:
             output_dir: Output directory for checkpoints
         """
         try:
+            from detectron2 import model_zoo
             from detectron2.config import get_cfg
             from detectron2.engine import DefaultTrainer
-            from detectron2 import model_zoo
         except ImportError:
             raise ImportError(
                 "detectron2 package not installed. "

@@ -238,7 +238,7 @@ class ONNXInferenceEngine(InferenceEngine):
         self.input_shape = self.session.get_inputs()[0].shape
         self.output_names = [o.name for o in self.session.get_outputs()]
 
-        logger.info(f"ONNX model loaded successfully")
+        logger.info("ONNX model loaded successfully")
         logger.info(f"  Input: {self.input_name}, shape: {self.input_shape}")
         logger.info(f"  Outputs: {self.output_names}")
         logger.info(f"  Providers: {self.session.get_providers()}")
@@ -436,7 +436,7 @@ class YOLOv8InferenceEngine(InferenceEngine):
         if not self.class_names:
             self.class_names = list(self.model.names.values())
 
-        logger.info(f"YOLOv8 model loaded successfully")
+        logger.info("YOLOv8 model loaded successfully")
         logger.info(f"  Classes: {len(self.class_names)}")
 
     def predict(self, image: Union[np.ndarray, Path]) -> List[Dict]:

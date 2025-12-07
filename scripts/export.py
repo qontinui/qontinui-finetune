@@ -17,10 +17,9 @@ Includes model optimization options:
 
 import argparse
 import logging
-import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import numpy as np
 import torch
@@ -575,7 +574,7 @@ class YOLOv8Exporter(ModelExporter):
             "fps": float(1000 / np.mean(timings)),
         }
 
-        logger.info(f"\nBenchmark Results:")
+        logger.info("\nBenchmark Results:")
         logger.info(f"  Mean: {results['mean_ms']:.2f} ms")
         logger.info(f"  Std: {results['std_ms']:.2f} ms")
         logger.info(f"  Min: {results['min_ms']:.2f} ms")

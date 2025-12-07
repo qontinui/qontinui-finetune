@@ -15,7 +15,7 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 
 import cv2
 import matplotlib.pyplot as plt

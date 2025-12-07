@@ -584,7 +584,7 @@ class DatasetStatistics:
         logger.info(f"{'='*60}")
         logger.info(f"Total Images: {stats['num_images']}")
         logger.info(f"Total Annotations: {stats['num_annotations']}")
-        logger.info(f"\nClass Distribution:")
+        logger.info("\nClass Distribution:")
         for class_idx, count in sorted(stats["class_distribution"].items()):
             class_name = (
                 class_names[class_idx]
@@ -592,7 +592,7 @@ class DatasetStatistics:
                 else f"Class {class_idx}"
             )
             logger.info(f"  {class_name}: {count}")
-        logger.info(f"\nAnnotations per Image:")
+        logger.info("\nAnnotations per Image:")
         logger.info(f"  Mean: {stats['annotations_stats']['mean']:.2f}")
         logger.info(f"  Median: {stats['annotations_stats']['median']:.2f}")
         logger.info(f"  Max: {stats['annotations_stats']['max']}")
