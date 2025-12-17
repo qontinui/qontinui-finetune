@@ -16,7 +16,6 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional
 
 import torch
 import yaml
@@ -97,12 +96,12 @@ class YOLOv8Trainer:
         patience: int = 50,
         save_period: int = -1,
         workers: int = 8,
-        device: Optional[str] = None,
+        device: str | None = None,
         resume: bool = False,
         amp: bool = True,
         fraction: float = 1.0,
         **kwargs,
-    ) -> Dict:
+    ) -> dict:
         """
         Train the YOLOv8 model.
 
@@ -223,7 +222,7 @@ class YOLOv8Trainer:
             logger.error(f"Training failed: {e}")
             raise
 
-    def validate(self, data: Optional[Path] = None, **kwargs) -> Dict:
+    def validate(self, data: Path | None = None, **kwargs) -> dict:
         """
         Validate the model.
 
@@ -250,7 +249,7 @@ class Detectron2Trainer:
     def __init__(
         self,
         config_file: str = "COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml",
-        weights: Optional[str] = None,
+        weights: str | None = None,
         output_dir: Path = Path("output"),
     ):
         """
@@ -349,7 +348,7 @@ class Detectron2Trainer:
         logger.info("Training completed!")
 
 
-def load_config(config_path: Path) -> Dict:
+def load_config(config_path: Path) -> dict:
     """
     Load training configuration from YAML file.
 
@@ -359,12 +358,12 @@ def load_config(config_path: Path) -> Dict:
     Returns:
         Dictionary containing configuration
     """
-    with open(config_path, "r") as f:
+    with open(config_path) as f:
         config = yaml.safe_load(f)
     return config
 
 
-def save_config(config: Dict, output_path: Path) -> None:
+def save_config(config: dict, output_path: Path) -> None:
     """
     Save training configuration to YAML file.
 

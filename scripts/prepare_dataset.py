@@ -18,7 +18,6 @@ import logging
 import shutil
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import yaml
@@ -48,7 +47,7 @@ class DatasetConverter:
         self.output_path.mkdir(parents=True, exist_ok=True)
 
     def coco_to_yolo(
-        self, coco_json: Path, class_names: Optional[List[str]] = None
+        self, coco_json: Path, class_names: list[str] | None = None
     ) -> None:
         """
         Convert COCO format to YOLO format.
@@ -59,7 +58,7 @@ class DatasetConverter:
         """
         logger.info(f"Converting COCO to YOLO: {coco_json}")
 
-        with open(coco_json, "r") as f:
+        with open(coco_json) as f:
             coco_data = json.load(f)
 
         # Extract class names if not provided
@@ -124,7 +123,7 @@ class DatasetConverter:
         logger.info(f"Conversion complete. Labels saved to {labels_dir}")
 
     def yolo_to_coco(
-        self, labels_dir: Path, images_dir: Path, class_names: List[str]
+        self, labels_dir: Path, images_dir: Path, class_names: list[str]
     ) -> None:
         """
         Convert YOLO format to COCO format.
@@ -176,7 +175,7 @@ class DatasetConverter:
             )
 
             # Convert annotations
-            with open(label_file, "r") as f:
+            with open(label_file) as f:
                 for line in f:
                     if not line.strip():
                         continue
@@ -290,7 +289,7 @@ class DatasetValidator:
         """
         self.dataset_path = Path(dataset_path)
 
-    def validate_yolo_dataset(self) -> Tuple[bool, List[str]]:
+    def validate_yolo_dataset(self) -> tuple[bool, list[str]]:
         """
         Validate YOLO format dataset.
 
@@ -343,7 +342,7 @@ class DatasetValidator:
             list(labels_dir.glob("*.txt")), desc="Validating labels"
         ):
             try:
-                with open(label_file, "r") as f:
+                with open(label_file) as f:
                     for line_num, line in enumerate(f, 1):
                         if not line.strip():
                             continue
@@ -463,7 +462,7 @@ class DatasetSplitter:
         class_names = []
         classes_file = self.dataset_path / "classes.txt"
         if classes_file.exists():
-            with open(classes_file, "r") as f:
+            with open(classes_file) as f:
                 class_names = [line.strip() for line in f if line.strip()]
 
         data_yaml = {
@@ -493,7 +492,7 @@ class DatasetStatistics:
         """
         self.dataset_path = Path(dataset_path)
 
-    def generate_statistics(self) -> Dict:
+    def generate_statistics(self) -> dict:
         """
         Generate comprehensive dataset statistics.
 
@@ -517,7 +516,7 @@ class DatasetStatistics:
         # Load class names
         classes_file = self.dataset_path / "classes.txt"
         if classes_file.exists():
-            with open(classes_file, "r") as f:
+            with open(classes_file) as f:
                 class_names = [line.strip() for line in f if line.strip()]
             stats["class_names"] = class_names
         else:
@@ -530,7 +529,7 @@ class DatasetStatistics:
         for label_file in tqdm(label_files, desc="Analyzing dataset"):
             anns_in_image = 0
 
-            with open(label_file, "r") as f:
+            with open(label_file) as f:
                 for line in f:
                     if not line.strip():
                         continue
@@ -720,7 +719,7 @@ def main():
             classes_file = args.input / "classes.txt"
             if not classes_file.exists():
                 parser.error(f"classes.txt not found in {args.input}")
-            with open(classes_file, "r") as f:
+            with open(classes_file) as f:
                 class_names = [line.strip() for line in f if line.strip()]
             converter.yolo_to_coco(args.labels_dir, args.images_dir, class_names)
 

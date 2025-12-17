@@ -15,7 +15,6 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import Dict, List
 
 import cv2
 import matplotlib.pyplot as plt
@@ -99,10 +98,10 @@ class ModelEvaluator:
 
     def calculate_map(
         self,
-        predictions: List[Dict],
-        ground_truths: List[Dict],
+        predictions: list[dict],
+        ground_truths: list[dict],
         iou_threshold: float = 0.5,
-    ) -> Dict:
+    ) -> dict:
         """
         Calculate mean Average Precision (mAP).
 
@@ -206,9 +205,9 @@ class ModelEvaluator:
 
     def generate_confusion_matrix(
         self,
-        predictions: List[Dict],
-        ground_truths: List[Dict],
-        class_names: List[str],
+        predictions: list[dict],
+        ground_truths: list[dict],
+        class_names: list[str],
         iou_threshold: float = 0.5,
     ) -> np.ndarray:
         """
@@ -287,7 +286,7 @@ class ModelEvaluator:
         return confusion_matrix
 
     def plot_confusion_matrix(
-        self, confusion_matrix: np.ndarray, class_names: List[str], output_path: Path
+        self, confusion_matrix: np.ndarray, class_names: list[str], output_path: Path
     ) -> None:
         """
         Plot and save confusion matrix.
@@ -322,9 +321,9 @@ class ModelEvaluator:
     def visualize_predictions(
         self,
         image_path: Path,
-        predictions: List[Dict],
-        ground_truths: List[Dict],
-        class_names: List[str],
+        predictions: list[dict],
+        ground_truths: list[dict],
+        class_names: list[str],
         output_path: Path,
     ) -> None:
         """
@@ -425,7 +424,7 @@ class YOLOv8Evaluator(ModelEvaluator):
 
     def evaluate(
         self, save_visualizations: bool = True, max_visualizations: int = 20
-    ) -> Dict:
+    ) -> dict:
         """
         Run full evaluation.
 
@@ -526,7 +525,7 @@ class YOLOv8Evaluator(ModelEvaluator):
         # Get validation images
         import yaml
 
-        with open(self.data_path, "r") as f:
+        with open(self.data_path) as f:
             data_config = yaml.safe_load(f)
 
         val_images_dir = Path(data_config["path"]) / data_config["val"]

@@ -19,7 +19,6 @@ import argparse
 import logging
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import numpy as np
 import torch
@@ -38,7 +37,7 @@ class ModelExporter:
         self,
         model_path: Path,
         output_dir: Path,
-        model_name: Optional[str] = None,
+        model_name: str | None = None,
     ):
         """
         Initialize model exporter.
@@ -66,7 +65,7 @@ class ModelExporter:
         self,
         original_model_path: Path,
         exported_model_path: Path,
-        test_image: Optional[Path] = None,
+        test_image: Path | None = None,
     ) -> bool:
         """
         Validate exported model against original.
@@ -338,10 +337,10 @@ class YOLOv8Exporter(ModelExporter):
 
     def export_all(
         self,
-        formats: List[str],
+        formats: list[str],
         imgsz: int = 640,
         **kwargs,
-    ) -> Dict[str, Path]:
+    ) -> dict[str, Path]:
         """
         Export model to multiple formats.
 
@@ -385,7 +384,7 @@ class YOLOv8Exporter(ModelExporter):
         self,
         exported_format: str,
         exported_model_path: Path,
-        test_image: Optional[Path] = None,
+        test_image: Path | None = None,
         tolerance: float = 1e-3,
     ) -> bool:
         """
@@ -486,7 +485,7 @@ class YOLOv8Exporter(ModelExporter):
         exported_format: str,
         num_iterations: int = 100,
         warmup_iterations: int = 10,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Benchmark exported model performance.
 
@@ -523,7 +522,7 @@ class YOLOv8Exporter(ModelExporter):
         test_input: np.ndarray,
         num_iterations: int,
         warmup_iterations: int,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Benchmark ONNX model.
 

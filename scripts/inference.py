@@ -16,7 +16,6 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -37,7 +36,7 @@ class InferenceEngine:
         model_path: Path,
         conf_threshold: float = 0.25,
         iou_threshold: float = 0.45,
-        class_names: Optional[List[str]] = None,
+        class_names: list[str] | None = None,
     ):
         """
         Initialize inference engine.
@@ -95,9 +94,9 @@ class InferenceEngine:
     def postprocess(
         self,
         outputs: np.ndarray,
-        original_shape: Tuple[int, int],
+        original_shape: tuple[int, int],
         target_size: int = 640,
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """
         Postprocess model outputs.
 
@@ -111,7 +110,7 @@ class InferenceEngine:
         """
         raise NotImplementedError("Subclasses must implement postprocess")
 
-    def predict(self, image: Union[np.ndarray, Path]) -> List[Dict]:
+    def predict(self, image: np.ndarray | Path) -> list[dict]:
         """
         Run inference on image.
 
@@ -126,8 +125,8 @@ class InferenceEngine:
     def visualize(
         self,
         image: np.ndarray,
-        detections: List[Dict],
-        output_path: Optional[Path] = None,
+        detections: list[dict],
+        output_path: Path | None = None,
         show: bool = False,
     ) -> np.ndarray:
         """
@@ -243,7 +242,7 @@ class ONNXInferenceEngine(InferenceEngine):
         logger.info(f"  Outputs: {self.output_names}")
         logger.info(f"  Providers: {self.session.get_providers()}")
 
-    def predict(self, image: Union[np.ndarray, Path]) -> List[Dict]:
+    def predict(self, image: np.ndarray | Path) -> list[dict]:
         """
         Run inference on image.
 
@@ -273,8 +272,8 @@ class ONNXInferenceEngine(InferenceEngine):
         return detections
 
     def postprocess_yolo(
-        self, outputs: np.ndarray, original_shape: Tuple[int, int]
-    ) -> List[Dict]:
+        self, outputs: np.ndarray, original_shape: tuple[int, int]
+    ) -> list[dict]:
         """
         Postprocess YOLO model outputs.
 
@@ -344,7 +343,7 @@ class ONNXInferenceEngine(InferenceEngine):
 
         return detections
 
-    def apply_nms(self, detections: List[Dict]) -> List[Dict]:
+    def apply_nms(self, detections: list[dict]) -> list[dict]:
         """
         Apply Non-Maximum Suppression.
 
@@ -389,7 +388,7 @@ class ONNXInferenceEngine(InferenceEngine):
 
         return final_detections
 
-    def calculate_iou(self, box1: List[float], box2: List[float]) -> float:
+    def calculate_iou(self, box1: list[float], box2: list[float]) -> float:
         """
         Calculate IoU between two boxes.
 
@@ -439,7 +438,7 @@ class YOLOv8InferenceEngine(InferenceEngine):
         logger.info("YOLOv8 model loaded successfully")
         logger.info(f"  Classes: {len(self.class_names)}")
 
-    def predict(self, image: Union[np.ndarray, Path]) -> List[Dict]:
+    def predict(self, image: np.ndarray | Path) -> list[dict]:
         """
         Run inference on image.
 
@@ -496,7 +495,7 @@ class InferenceBenchmark:
         image_path: Path,
         num_iterations: int = 100,
         warmup_iterations: int = 10,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Benchmark inference on single image.
 
@@ -636,7 +635,7 @@ def main():
     # Load class names if provided
     class_names = []
     if args.classes:
-        with open(args.classes, "r") as f:
+        with open(args.classes) as f:
             class_names = [line.strip() for line in f if line.strip()]
         logger.info(f"Loaded {len(class_names)} class names")
 
