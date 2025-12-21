@@ -319,7 +319,7 @@ class DatasetValidator:
                 f.stem for f in images_dir.glob(f"*{ext}") if f.is_file()
             )
 
-        label_files = set(f.stem for f in labels_dir.glob("*.txt") if f.is_file())
+        label_files = {f.stem for f in labels_dir.glob("*.txt") if f.is_file()}
 
         # Find missing labels
         missing_labels = image_files - label_files
@@ -561,7 +561,7 @@ class DatasetStatistics:
 
         # Calculate summary statistics
         if stats["bbox_sizes"]:
-            widths, heights = zip(*stats["bbox_sizes"])
+            widths, heights = zip(*stats["bbox_sizes"], strict=False)
             stats["bbox_stats"] = {
                 "mean_width": float(np.mean(widths)),
                 "mean_height": float(np.mean(heights)),

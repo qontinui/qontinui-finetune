@@ -94,7 +94,7 @@ class YOLOv8Exporter(ModelExporter):
             raise ImportError(
                 "ultralytics package not installed. "
                 "Install with: pip install ultralytics"
-            )
+            ) from None
 
         logger.info(f"Loading YOLOv8 model from {self.model_path}")
         self.model = YOLO(str(self.model_path))
@@ -412,14 +412,19 @@ class YOLOv8Exporter(ModelExporter):
 
         try:
             # Get predictions from original model
-            original_results = self.model.predict(
+
+            self.model.predict(
                 test_input,
                 verbose=False,
             )
 
             # Get predictions from exported model
+
+
             if exported_format == "onnx":
-                exported_results = self._validate_onnx(exported_model_path, test_input)
+
+
+                self._validate_onnx(exported_model_path, test_input)
             elif exported_format == "tensorrt" or exported_format == "engine":
                 logger.info("TensorRT validation requires runtime engine")
                 return True
@@ -454,7 +459,7 @@ class YOLOv8Exporter(ModelExporter):
             raise ImportError(
                 "onnxruntime package not installed. "
                 "Install with: pip install onnxruntime"
-            )
+            ) from None
 
         session = ort.InferenceSession(str(onnx_path))
 
@@ -538,7 +543,7 @@ class YOLOv8Exporter(ModelExporter):
         try:
             import onnxruntime as ort
         except ImportError:
-            raise ImportError("onnxruntime not installed")
+            raise ImportError("onnxruntime not installed") from None
 
         session = ort.InferenceSession(str(onnx_path))
         input_name = session.get_inputs()[0].name

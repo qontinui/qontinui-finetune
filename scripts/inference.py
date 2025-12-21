@@ -218,7 +218,7 @@ class ONNXInferenceEngine(InferenceEngine):
             raise ImportError(
                 "onnxruntime package not installed. "
                 "Install with: pip install onnxruntime"
-            )
+            ) from None
 
         logger.info("Loading ONNX model")
 
@@ -366,7 +366,7 @@ class ONNXInferenceEngine(InferenceEngine):
 
         # Apply NMS per class
         final_detections = []
-        for cls, dets in class_detections.items():
+        for _cls, dets in class_detections.items():
             # Sort by confidence
             dets = sorted(dets, key=lambda x: x["confidence"], reverse=True)
 
@@ -426,7 +426,7 @@ class YOLOv8InferenceEngine(InferenceEngine):
             raise ImportError(
                 "ultralytics package not installed. "
                 "Install with: pip install ultralytics"
-            )
+            ) from None
 
         logger.info("Loading YOLOv8 model")
         self.model = YOLO(str(self.model_path))
@@ -466,7 +466,7 @@ class YOLOv8InferenceEngine(InferenceEngine):
                 classes = result.boxes.cls.cpu().numpy()
                 confidences = result.boxes.conf.cpu().numpy()
 
-                for box, cls, conf in zip(boxes, classes, confidences):
+                for box, cls, conf in zip(boxes, classes, confidences, strict=False):
                     detections.append(
                         {
                             "bbox": box.tolist(),
@@ -524,7 +524,9 @@ class InferenceBenchmark:
 
         for _ in tqdm(range(num_iterations), desc="Benchmarking"):
             start = time.perf_counter()
-            detections = self.engine.predict(image)
+
+            self.engine.predict(image)
+
             end = time.perf_counter()
             timings.append((end - start) * 1000)  # Convert to ms
 

@@ -367,7 +367,7 @@ class ModelEvaluator:
                 class_name,
                 color="white",
                 fontsize=10,
-                bbox=dict(facecolor="green", alpha=0.7),
+                bbox={"facecolor": "green", "alpha": 0.7},
             )
 
         # Plot predictions
@@ -396,7 +396,7 @@ class ModelEvaluator:
                 f"{class_name} {conf:.2f}",
                 color="white",
                 fontsize=10,
-                bbox=dict(facecolor="red", alpha=0.7),
+                bbox={"facecolor": "red", "alpha": 0.7},
             )
 
         plt.tight_layout()
@@ -415,9 +415,12 @@ class YOLOv8Evaluator(ModelEvaluator):
             from ultralytics import YOLO
         except ImportError:
             raise ImportError(
+
                 "ultralytics package not installed. "
+
                 "Install with: pip install ultralytics"
-            )
+
+            ) from None
 
         logger.info(f"Loading YOLOv8 model from {self.model_path}")
         self.model = YOLO(str(self.model_path))
@@ -621,7 +624,7 @@ def main():
         raise ValueError(f"Unsupported model type: {args.model_type}")
 
     # Run evaluation
-    results = evaluator.evaluate(
+    evaluator.evaluate(
         save_visualizations=not args.no_visualizations,
         max_visualizations=args.max_visualizations,
     )

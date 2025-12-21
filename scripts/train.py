@@ -54,7 +54,7 @@ class YOLOv8Trainer:
             raise ImportError(
                 "ultralytics package not installed. "
                 "Install with: pip install ultralytics"
-            )
+            ) from None
 
         self.model_size = model_size
         self.data_config = Path(data_config) if data_config else None
@@ -263,12 +263,11 @@ class Detectron2Trainer:
         try:
             from detectron2 import model_zoo
             from detectron2.config import get_cfg
-            from detectron2.engine import DefaultTrainer
         except ImportError:
             raise ImportError(
                 "detectron2 package not installed. "
                 "See: https://detectron2.readthedocs.io/en/latest/tutorials/install.html"
-            )
+            ) from None
 
         self.cfg = get_cfg()
         self.output_dir = Path(output_dir)
