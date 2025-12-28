@@ -415,11 +415,8 @@ class YOLOv8Evaluator(ModelEvaluator):
             from ultralytics import YOLO
         except ImportError:
             raise ImportError(
-
                 "ultralytics package not installed. "
-
                 "Install with: pip install ultralytics"
-
             ) from None
 
         logger.info(f"Loading YOLOv8 model from {self.model_path}")

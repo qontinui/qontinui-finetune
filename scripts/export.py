@@ -420,9 +420,7 @@ class YOLOv8Exporter(ModelExporter):
 
             # Get predictions from exported model
 
-
             if exported_format == "onnx":
-
 
                 self._validate_onnx(exported_model_path, test_input)
             elif exported_format == "tensorrt" or exported_format == "engine":

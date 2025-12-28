@@ -49,3 +49,7 @@ ignore = ["E501"]
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff.lint.per-file-ignores]
+# E402: Module level import not at top of file - acceptable in notebooks
+"notebooks/*.ipynb" = ["E402"]
