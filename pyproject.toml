@@ -15,6 +15,7 @@ peft = "^0.5.0"
 datasets = "^2.14.0"
 qontinui = {path = "../qontinui", develop = true}
 qontinui-train = {path = "../qontinui-train", develop = true}
+qontinui-schemas = {path = "../qontinui-schemas", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3"

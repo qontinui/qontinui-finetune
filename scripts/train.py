@@ -14,11 +14,11 @@ for GUI element detection with support for:
 import argparse
 import logging
 import sys
-from datetime import datetime
 from pathlib import Path
 
 import torch
 import yaml
+from qontinui_schemas.common import utc_now
 
 logging.basicConfig(
     level=logging.INFO,
@@ -530,7 +530,7 @@ def main():
 
     # Generate experiment name if not provided
     if args.name is None:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = utc_now().strftime("%Y%m%d_%H%M%S")
         args.name = f"{args.model}_{args.model_size}_{timestamp}"
 
     # Save config if requested
