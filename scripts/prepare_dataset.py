@@ -220,15 +220,17 @@ class DatasetConverter:
         logger.info("Converting Pascal VOC to YOLO format")
 
         # Extract class names
-        class_names = set()
+        class_names: set[str] = set()
         for xml_file in Path(annotations_dir).glob("*.xml"):
             tree = ET.parse(xml_file)
             root = tree.getroot()
             for obj in root.findall("object"):
-                class_names.add(obj.find("name").text)
+                name_elem = obj.find("name")
+                if name_elem is not None and name_elem.text is not None:
+                    class_names.add(name_elem.text)
 
-        class_names = sorted(class_names)
-        class_to_idx = {name: idx for idx, name in enumerate(class_names)}
+        class_names_list = sorted(class_names)
+        class_to_idx = {name: idx for idx, name in enumerate(class_names_list)}
 
         # Create labels directory
         labels_dir = self.output_path / "labels"
@@ -242,22 +244,57 @@ class DatasetConverter:
 
             # Get image dimensions
             size = root.find("size")
-            img_width = int(size.find("width").text)
-            img_height = int(size.find("height").text)
+            if size is None:
+                logger.warning(f"No size element found in {xml_file}, skipping")
+                continue
+            width_elem = size.find("width")
+            height_elem = size.find("height")
+            if (
+                width_elem is None
+                or width_elem.text is None
+                or height_elem is None
+                or height_elem.text is None
+            ):
+                logger.warning(f"Invalid size element in {xml_file}, skipping")
+                continue
+            img_width = int(width_elem.text)
+            img_height = int(height_elem.text)
 
             # Create label file
             label_file = labels_dir / f"{xml_file.stem}.txt"
 
             with open(label_file, "w") as f:
                 for obj in root.findall("object"):
-                    class_name = obj.find("name").text
+                    name_elem = obj.find("name")
+                    if name_elem is None or name_elem.text is None:
+                        continue
+                    class_name = name_elem.text
+                    if class_name not in class_to_idx:
+                        continue
                     class_idx = class_to_idx[class_name]
 
                     bbox = obj.find("bndbox")
-                    xmin = float(bbox.find("xmin").text)
-                    ymin = float(bbox.find("ymin").text)
-                    xmax = float(bbox.find("xmax").text)
-                    ymax = float(bbox.find("ymax").text)
+                    if bbox is None:
+                        continue
+                    xmin_elem = bbox.find("xmin")
+                    ymin_elem = bbox.find("ymin")
+                    xmax_elem = bbox.find("xmax")
+                    ymax_elem = bbox.find("ymax")
+                    if (
+                        xmin_elem is None
+                        or xmin_elem.text is None
+                        or ymin_elem is None
+                        or ymin_elem.text is None
+                        or xmax_elem is None
+                        or xmax_elem.text is None
+                        or ymax_elem is None
+                        or ymax_elem.text is None
+                    ):
+                        continue
+                    xmin = float(xmin_elem.text)
+                    ymin = float(ymin_elem.text)
+                    xmax = float(xmax_elem.text)
+                    ymax = float(ymax_elem.text)
 
                     # Convert to YOLO format
                     x_center = ((xmin + xmax) / 2) / img_width
@@ -272,7 +309,7 @@ class DatasetConverter:
 
         # Save class names
         with open(self.output_path / "classes.txt", "w") as f:
-            f.write("\n".join(class_names))
+            f.write("\n".join(class_names_list))
 
         logger.info(f"Conversion complete. Labels saved to {labels_dir}")
 

@@ -62,7 +62,7 @@ class FewShotEvaluator(DetectionEvaluator):
         # - Fine-tune on support set
         # - Evaluate on query set
         # - Report metrics
-        pass
+        raise NotImplementedError("Few-shot evaluation not yet implemented")
 
     def finetune_on_support(
         self,

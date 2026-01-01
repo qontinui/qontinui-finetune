@@ -33,8 +33,8 @@ class YOLOv8Trainer:
     def __init__(
         self,
         model_size: str = "n",
-        data_config: Path = None,
-        project: Path = None,
+        data_config: Path | None = None,
+        project: Path | None = None,
         name: str = "train",
         exist_ok: bool = False,
     ):
