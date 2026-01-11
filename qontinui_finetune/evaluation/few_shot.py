@@ -4,22 +4,29 @@ Evaluates model fine-tuning on limited examples per class.
 Tests sample efficiency and quick adaptation.
 """
 
+from typing import Any
+
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
+
+class _FallbackDetectionEvaluator:
+    """Stub base class for when qontinui-train is not available."""
+
+    def __init__(self, model: nn.Module, **kwargs: Any) -> None:
+        self.model = model
+
+
+# Handle optional qontinui-train dependency
 try:
-    from qontinui_train.evaluation.evaluate import DetectionEvaluator
+    from qontinui_train.evaluation.evaluate import (
+        DetectionEvaluator as _BaseDetectionEvaluator,
+    )
 except ImportError:
-    # Fallback for when qontinui-train is not installed
-
-    class DetectionEvaluator:
-        """Stub base class for when qontinui-train is not available."""
-
-        def __init__(self, model: nn.Module, **kwargs) -> None:
-            self.model = model
+    _BaseDetectionEvaluator = _FallbackDetectionEvaluator  # type: ignore[misc,assignment]
 
 
-class FewShotEvaluator(DetectionEvaluator):
+class FewShotEvaluator(_BaseDetectionEvaluator):  # type: ignore[misc]
     """Evaluator for few-shot learning.
 
     Evaluates model fine-tuning on limited examples per class.
