@@ -12,12 +12,15 @@ Supports:
 - Dataset statistics and visualization
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import logging
 import shutil
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import yaml
@@ -75,7 +78,7 @@ class DatasetConverter:
         labels_dir.mkdir(parents=True, exist_ok=True)
 
         # Group annotations by image
-        img_to_anns = {}
+        img_to_anns: dict[int, list[dict[str, Any]]] = {}
         for ann in coco_data["annotations"]:
             img_id = ann["image_id"]
             if img_id not in img_to_anns:
@@ -350,7 +353,7 @@ class DatasetValidator:
             return False, errors
 
         # Check image-label pairs
-        image_files = set()
+        image_files: set[str] = set()
         for ext in [".jpg", ".jpeg", ".png"]:
             image_files.update(
                 f.stem for f in images_dir.glob(f"*{ext}") if f.is_file()
@@ -457,11 +460,11 @@ class DatasetSplitter:
         images_dir = self.dataset_path / "images"
         labels_dir = self.dataset_path / "labels"
 
-        image_files = []
+        image_files_unsorted: list[Path] = []
         for ext in [".jpg", ".jpeg", ".png"]:
-            image_files.extend(images_dir.glob(f"*{ext}"))
+            image_files_unsorted.extend(images_dir.glob(f"*{ext}"))
 
-        image_files = sorted(image_files)
+        image_files = sorted(image_files_unsorted)
         logger.info(f"Found {len(image_files)} images")
 
         # Shuffle and split
@@ -529,7 +532,7 @@ class DatasetStatistics:
         """
         self.dataset_path = Path(dataset_path)
 
-    def generate_statistics(self) -> dict:
+    def generate_statistics(self) -> dict[str, Any]:
         """
         Generate comprehensive dataset statistics.
 
@@ -541,13 +544,18 @@ class DatasetStatistics:
         labels_dir = self.dataset_path / "labels"
         images_dir = self.dataset_path / "images"
 
-        stats = {
+        class_distribution: dict[int, int] = {}
+        bbox_sizes: list[tuple[float, float]] = []
+        image_sizes: list[tuple[int, int]] = []
+        annotations_per_image: list[int] = []
+
+        stats: dict[str, Any] = {
             "num_images": 0,
             "num_annotations": 0,
-            "class_distribution": {},
-            "bbox_sizes": [],
-            "image_sizes": [],
-            "annotations_per_image": [],
+            "class_distribution": class_distribution,
+            "bbox_sizes": bbox_sizes,
+            "image_sizes": image_sizes,
+            "annotations_per_image": annotations_per_image,
         }
 
         # Load class names
@@ -563,6 +571,7 @@ class DatasetStatistics:
         label_files = sorted(labels_dir.glob("*.txt"))
         stats["num_images"] = len(label_files)
 
+        num_annotations = 0
         for label_file in tqdm(label_files, desc="Analyzing dataset"):
             anns_in_image = 0
 
@@ -576,29 +585,31 @@ class DatasetStatistics:
                     _, _, w, h = map(float, parts[1:5])
 
                     # Update class distribution
-                    if class_idx not in stats["class_distribution"]:
-                        stats["class_distribution"][class_idx] = 0
-                    stats["class_distribution"][class_idx] += 1
+                    if class_idx not in class_distribution:
+                        class_distribution[class_idx] = 0
+                    class_distribution[class_idx] += 1
 
                     # Store bbox size
-                    stats["bbox_sizes"].append((w, h))
+                    bbox_sizes.append((w, h))
 
                     anns_in_image += 1
-                    stats["num_annotations"] += 1
+                    num_annotations += 1
 
-            stats["annotations_per_image"].append(anns_in_image)
+            annotations_per_image.append(anns_in_image)
 
             # Get image size
             for ext in [".jpg", ".jpeg", ".png"]:
                 img_path = images_dir / f"{label_file.stem}{ext}"
                 if img_path.exists():
                     with Image.open(img_path) as img:
-                        stats["image_sizes"].append(img.size)
+                        image_sizes.append(img.size)
                     break
 
+        stats["num_annotations"] = num_annotations
+
         # Calculate summary statistics
-        if stats["bbox_sizes"]:
-            widths, heights = zip(*stats["bbox_sizes"], strict=False)
+        if bbox_sizes:
+            widths, heights = zip(*bbox_sizes, strict=False)
             stats["bbox_stats"] = {
                 "mean_width": float(np.mean(widths)),
                 "mean_height": float(np.mean(heights)),
@@ -606,33 +617,35 @@ class DatasetStatistics:
                 "median_height": float(np.median(heights)),
             }
 
-        if stats["annotations_per_image"]:
-            stats["annotations_stats"] = {
-                "mean": float(np.mean(stats["annotations_per_image"])),
-                "median": float(np.median(stats["annotations_per_image"])),
-                "max": int(np.max(stats["annotations_per_image"])),
-                "min": int(np.min(stats["annotations_per_image"])),
+        annotations_stats: dict[str, float] = {}
+        if annotations_per_image:
+            annotations_stats = {
+                "mean": float(np.mean(annotations_per_image)),
+                "median": float(np.median(annotations_per_image)),
+                "max": float(np.max(annotations_per_image)),
+                "min": float(np.min(annotations_per_image)),
             }
+            stats["annotations_stats"] = annotations_stats
 
         # Print summary
         logger.info(f"\n{'='*60}")
         logger.info("Dataset Statistics Summary")
         logger.info(f"{'='*60}")
         logger.info(f"Total Images: {stats['num_images']}")
-        logger.info(f"Total Annotations: {stats['num_annotations']}")
+        logger.info(f"Total Annotations: {num_annotations}")
         logger.info("\nClass Distribution:")
-        for class_idx, count in sorted(stats["class_distribution"].items()):
+        for cls_idx, count in sorted(class_distribution.items()):
             class_name = (
-                class_names[class_idx]
-                if class_idx < len(class_names)
-                else f"Class {class_idx}"
+                class_names[cls_idx]
+                if cls_idx < len(class_names)
+                else f"Class {cls_idx}"
             )
             logger.info(f"  {class_name}: {count}")
         logger.info("\nAnnotations per Image:")
-        logger.info(f"  Mean: {stats['annotations_stats']['mean']:.2f}")
-        logger.info(f"  Median: {stats['annotations_stats']['median']:.2f}")
-        logger.info(f"  Max: {stats['annotations_stats']['max']}")
-        logger.info(f"  Min: {stats['annotations_stats']['min']}")
+        logger.info(f"  Mean: {annotations_stats['mean']:.2f}")
+        logger.info(f"  Median: {annotations_stats['median']:.2f}")
+        logger.info(f"  Max: {int(annotations_stats['max'])}")
+        logger.info(f"  Min: {int(annotations_stats['min'])}")
         logger.info(f"{'='*60}\n")
 
         # Save statistics to JSON
@@ -656,7 +669,7 @@ class DatasetStatistics:
         return stats
 
 
-def main():
+def main() -> None:
     """Main entry point for dataset preparation."""
     parser = argparse.ArgumentParser(
         description="Prepare and validate datasets for GUI element detection"
