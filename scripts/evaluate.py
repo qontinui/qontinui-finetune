@@ -58,9 +58,9 @@ class ModelEvaluator:
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
 
-        self.results = {}
-        self.predictions = []
-        self.ground_truths = []
+        self.results: dict = {}
+        self.predictions: list[dict] = []
+        self.ground_truths: list[dict] = []
 
     def calculate_iou(
         self, box1: np.ndarray, box2: np.ndarray, format: str = "xyxy"
@@ -116,8 +116,8 @@ class ModelEvaluator:
         logger.info(f"Calculating mAP @ IoU={iou_threshold}")
 
         # Organize predictions and ground truths by class
-        class_predictions = {}
-        class_ground_truths = {}
+        class_predictions: dict[int, list[dict]] = {}
+        class_ground_truths: dict[int, list[dict]] = {}
 
         for pred in predictions:
             cls = pred["class"]
@@ -155,7 +155,7 @@ class ModelEvaluator:
 
             for i, pred in enumerate(preds):
                 # Find best matching ground truth
-                best_iou = 0
+                best_iou: float = 0.0
                 best_gt_idx = -1
 
                 for j, gt in enumerate(gts):
@@ -185,19 +185,19 @@ class ModelEvaluator:
             precisions = tp_cumsum / (tp_cumsum + fp_cumsum + 1e-6)
 
             # Calculate AP using 11-point interpolation
-            ap = 0
+            ap: float = 0.0
             for t in np.linspace(0, 1, 11):
                 if np.sum(recalls >= t) == 0:
-                    p = 0
+                    p: float = 0.0
                 else:
-                    p = np.max(precisions[recalls >= t])
+                    p = float(np.max(precisions[recalls >= t]))
                 ap += p / 11
 
             class_aps[cls] = ap
 
         # Calculate mAP
         if len(class_aps) > 0:
-            map_score = np.mean(list(class_aps.values()))
+            map_score: float = float(np.mean(list(class_aps.values())))
         else:
             map_score = 0.0
 
@@ -228,8 +228,8 @@ class ModelEvaluator:
         confusion_matrix = np.zeros((num_classes + 1, num_classes + 1), dtype=np.int32)
 
         # Group by image
-        img_predictions = {}
-        img_ground_truths = {}
+        img_predictions: dict[str, list[dict]] = {}
+        img_ground_truths: dict[str, list[dict]] = {}
 
         for pred in predictions:
             img_id = pred["image_id"]
@@ -254,7 +254,7 @@ class ModelEvaluator:
 
             # Match predictions to ground truths
             for pred in preds:
-                best_iou = 0
+                best_iou: float = 0.0
                 best_gt_idx = -1
 
                 for j, gt in enumerate(gts):

@@ -63,17 +63,19 @@ class ModelExporter:
 
     def validate_export(
         self,
-        original_model_path: Path,
+        exported_format: str,
         exported_model_path: Path,
         test_image: Path | None = None,
+        tolerance: float = 1e-3,
     ) -> bool:
         """
         Validate exported model against original.
 
         Args:
-            original_model_path: Path to original model
+            exported_format: Format of exported model
             exported_model_path: Path to exported model
             test_image: Optional test image for comparison
+            tolerance: Numerical tolerance for comparison
 
         Returns:
             True if validation passes, False otherwise
@@ -407,8 +409,8 @@ class YOLOv8Exporter(ModelExporter):
         else:
             import cv2
 
-            test_input = cv2.imread(str(test_image))
-            test_input = cv2.cvtColor(test_input, cv2.COLOR_BGR2RGB)
+            test_input = np.asarray(cv2.imread(str(test_image)))
+            test_input = np.asarray(cv2.cvtColor(test_input, cv2.COLOR_BGR2RGB))
 
         try:
             # Get predictions from original model
@@ -440,7 +442,7 @@ class YOLOv8Exporter(ModelExporter):
             logger.error(f"Validation failed: {e}")
             return False
 
-    def _validate_onnx(self, onnx_path: Path, test_input: np.ndarray) -> np.ndarray:
+    def _validate_onnx(self, onnx_path: Path, test_input: np.ndarray) -> list:
         """
         Validate ONNX model.
 
@@ -476,7 +478,7 @@ class YOLOv8Exporter(ModelExporter):
         img = np.expand_dims(img, axis=0)  # Add batch dimension
 
         # Run inference
-        outputs = session.run(None, {input_name: img})
+        outputs: list = session.run(None, {input_name: img})
 
         logger.info(f"ONNX output shapes: {[o.shape for o in outputs]}")
 

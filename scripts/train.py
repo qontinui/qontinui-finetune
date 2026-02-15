@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 import torch
-import yaml
+import yaml  # type: ignore[import-untyped]
 from qontinui_schemas.common import utc_now
 
 logging.basicConfig(
@@ -240,7 +240,7 @@ class YOLOv8Trainer:
         logger.info(f"Validating model on {data}")
         results = self.model.val(data=str(data), **kwargs)
 
-        return results
+        return dict(results)  # type: ignore[call-overload]
 
 
 class Detectron2Trainer:
@@ -358,7 +358,7 @@ def load_config(config_path: Path) -> dict:
         Dictionary containing configuration
     """
     with open(config_path) as f:
-        config = yaml.safe_load(f)
+        config: dict = yaml.safe_load(f)
     return config
 
 

@@ -253,21 +253,25 @@ class ONNXInferenceEngine(InferenceEngine):
             List of detections
         """
         # Load image if path provided
+        img: np.ndarray
         if isinstance(image, (str, Path)):
-            image = cv2.imread(str(image))
-            if image is None:
+            loaded = cv2.imread(str(image))
+            if loaded is None:
                 raise ValueError(f"Failed to load image: {image}")
+            img = loaded
+        else:
+            img = image
 
-        original_shape = image.shape[:2]
+        original_shape: tuple[int, int] = (img.shape[0], img.shape[1])
 
         # Preprocess
-        input_data = self.preprocess(image)
+        input_data = self.preprocess(img)
 
         # Run inference
         outputs = self.session.run(self.output_names, {self.input_name: input_data})
 
         # Postprocess (assuming YOLO format output)
-        detections = self.postprocess_yolo(outputs[0], original_shape)
+        detections = self.postprocess_yolo(np.asarray(outputs[0]), original_shape)
 
         return detections
 
@@ -357,7 +361,7 @@ class ONNXInferenceEngine(InferenceEngine):
             return []
 
         # Group by class
-        class_detections = {}
+        class_detections: dict[int, list[dict]] = {}
         for det in detections:
             cls = det["class"]
             if cls not in class_detections:
