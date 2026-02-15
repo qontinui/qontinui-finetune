@@ -15,6 +15,7 @@ import argparse
 import json
 import logging
 from pathlib import Path
+from typing import Any
 
 import cv2
 import matplotlib.pyplot as plt
@@ -338,6 +339,9 @@ class ModelEvaluator:
         """
         # Read image
         img = cv2.imread(str(image_path))
+        if img is None:
+            logger.warning(f"Could not read image: {image_path}")
+            return
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
@@ -446,7 +450,7 @@ class YOLOv8Evaluator(ModelEvaluator):
         )
 
         # Extract metrics
-        results = {
+        results: dict[str, Any] = {
             "mAP50": float(val_results.box.map50),
             "mAP50-95": float(val_results.box.map),
             "precision": (
