@@ -74,3 +74,4 @@ htmlcov/
 # Environment
 .env
 .env.local
+.worktrees/
