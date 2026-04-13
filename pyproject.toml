@@ -13,6 +13,10 @@ torchvision = "^0.26"
 transformers = "^5.0"
 peft = "^0.18"
 datasets = "^2.14.0"
+bitsandbytes = "^0.45"
+qwen-vl-utils = "^0.0.8"
+accelerate = "^1.0"
+trl = "^0.18"
 qontinui = {path = "../qontinui", develop = true}
 qontinui-train = {path = "../qontinui-train", develop = true}
 qontinui-schemas = {path = "../qontinui-schemas", develop = true}
