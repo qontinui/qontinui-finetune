@@ -400,14 +400,42 @@ def run_training(args: argparse.Namespace) -> None:
         train_result.training_loss,
     )
 
-    # ── Merge LoRA weights and save ──────────────────────────────────────────
-    logger.info("Merging LoRA adapters into base model…")
-    merged_model = model.merge_and_unload()
+    # ── Save LoRA adapter, then re-merge against the full-precision base ─────
+    # Merging into the 4-bit-quantised training base keeps the result 4-bit
+    # and forces downstream serving stacks to carry a matching
+    # `bitsandbytes` version. Re-merging into a bf16 copy of the base
+    # produces a standard HuggingFace checkpoint servable by any vLLM /
+    # SGLang / Transformers deployment without extra deps.
+    logger.info("Saving trained LoRA adapter…")
+    adapter_dir = output_dir / "adapter"
+    adapter_dir.mkdir(parents=True, exist_ok=True)
+    model.save_pretrained(str(adapter_dir))
+
+    # Free the training model + optimiser state before loading the
+    # full-precision base — otherwise the 7B bf16 copy OOMs on top of
+    # Trainer's GPU allocations.
+    del trainer
+    del model
+    import gc
+
+    gc.collect()
+    torch.cuda.empty_cache()
+
+    logger.info("Reloading base model in bf16 for clean merge…")
+    from peft import PeftModel
+
+    full_base = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+        args.model,
+        torch_dtype=torch.bfloat16,
+        device_map="cpu",
+        trust_remote_code=True,
+    )
+    peft_model = PeftModel.from_pretrained(full_base, str(adapter_dir))
+    merged_model = peft_model.merge_and_unload()
 
     merged_dir = output_dir / "merged"
     merged_dir.mkdir(parents=True, exist_ok=True)
-
-    logger.info("Saving merged model to %s", merged_dir)
+    logger.info("Saving merged (bf16) model to %s", merged_dir)
     merged_model.save_pretrained(str(merged_dir))
     processor.save_pretrained(str(merged_dir))
 
