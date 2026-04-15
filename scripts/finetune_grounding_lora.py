@@ -423,8 +423,9 @@ def run_training(args: argparse.Namespace) -> None:
 
     logger.info("Reloading base model in bf16 for clean merge…")
     from peft import PeftModel
+    from transformers import Qwen2_5_VLForConditionalGeneration as _Qwen25VL
 
-    full_base = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+    full_base = _Qwen25VL.from_pretrained(
         args.model,
         torch_dtype=torch.bfloat16,
         device_map="cpu",
