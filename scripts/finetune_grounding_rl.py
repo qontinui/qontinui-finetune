@@ -399,7 +399,7 @@ def load_policy_model(
     )
     # New LoRA adapter on top of the (already-SFT-merged) base — the SFT
     # weights are preserved; this adapter only learns the RL delta.
-    model = get_peft_model(model, lora_config)
+    model = get_peft_model(model, lora_config)  # type: ignore[assignment]
 
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())

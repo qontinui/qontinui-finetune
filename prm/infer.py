@@ -130,7 +130,8 @@ class PRMInferencer:
         with torch.no_grad():
             reward = self.prm.forward(**enc)
 
-        return reward.detach().cpu().tolist()
+        result: list[float] = reward.detach().cpu().tolist()
+        return result
 
     def score_one(
         self,
