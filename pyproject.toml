@@ -16,6 +16,8 @@ datasets = ">=3.0,<5.0"
 bitsandbytes = ">=0.46.1,<0.50"
 qwen-vl-utils = "^0.0.8"
 accelerate = "^1.0"
+# trl >=0.15 required for GRPOTrainer (scripts/finetune_grounding_rl.py);
+# we pin ^0.18 to track the stable API surface used by the RL polish stage.
 trl = "^0.18"
 qontinui = {path = "../qontinui", develop = true}
 qontinui-train = {path = "../qontinui-train", develop = true}
