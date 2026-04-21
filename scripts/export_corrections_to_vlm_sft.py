@@ -54,6 +54,7 @@ skipped. This mirrors the trainer's own behaviour
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import logging
 import random
@@ -156,6 +157,29 @@ def _build_parser() -> argparse.ArgumentParser:
         default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         help="Logging verbosity",
+    )
+    # --centralized-export / --local-only are mutually exclusive. The
+    # plan §13 rec D: redaction is mandatory for any bundle leaving the
+    # dev machine; --local-only is the default and skips redaction on
+    # the assumption the output stays on the user's laptop.
+    export_scope = parser.add_mutually_exclusive_group()
+    export_scope.add_argument(
+        "--centralized-export",
+        action="store_true",
+        help=(
+            "Produce a centralized training bundle — every sample's "
+            "image is redacted via OCR before being referenced from the "
+            "JSONL. Mutually exclusive with --local-only. Refuses to "
+            "run alongside --include-private=true."
+        ),
+    )
+    export_scope.add_argument(
+        "--local-only",
+        action="store_true",
+        help=(
+            "Produce a local bundle (default behavior) — no redaction. "
+            "Mutually exclusive with --centralized-export."
+        ),
     )
     return parser
 
@@ -462,6 +486,25 @@ def _write_jsonl(path: Path, samples: list[dict[str, Any]]) -> None:
             f.write("\n")
 
 
+def _rewrite_sample_image_uri(sample: dict[str, Any], new_path: Path) -> None:
+    """Rewrite the sample's image URI to point at *new_path*.
+
+    Matches the URI scheme that ``_entry_to_vlm_sample`` emits so the
+    trainer's ``_extract_image_path`` strips ``file:///`` cleanly on
+    every OS.
+    """
+    abs_posix = new_path.resolve().as_posix()
+    uri = f"file:///{abs_posix.lstrip('/')}"
+    messages = sample.get("messages", [])
+    for msg in messages:
+        content = msg.get("content")
+        if not isinstance(content, list):
+            continue
+        for part in content:
+            if isinstance(part, dict) and part.get("type") == "image":
+                part["image"] = uri
+
+
 # ---------------------------------------------------------------------------
 # Main pipeline
 # ---------------------------------------------------------------------------
@@ -473,9 +516,45 @@ def export_corrections(
     include_private: bool,
     split: tuple[float, float, float],
     seed: int,
+    centralized_export: bool = False,
+    redaction_policy: Any | None = None,
 ) -> dict[str, Any]:
-    """Run the full export. Returns the summary dict that's written to disk."""
+    """Run the full export. Returns the summary dict that's written to disk.
+
+    When ``centralized_export`` is True, every sample's image is copied
+    through :func:`qontinui_finetune.redact.redact_image` and the JSONL
+    references the redacted copy (not the original). A ``manifest.jsonl``
+    file is written alongside ``summary.json`` giving one record per
+    redacted sample — ``{original_image, redacted_image, policy_hash}``
+    — so downstream trainers can audit the redaction trail.
+    """
     r_train, r_val, r_test = split
+
+    # Guardrail: refuse to centralize private entries. The exporter is
+    # called programmatically in tests too, so this check runs both here
+    # and in the argparse layer (parser.error) to fail as early as
+    # possible.
+    if centralized_export and include_private:
+        raise ValueError(
+            "Refusing to produce a centralized export while "
+            "include_private=True: private correction entries must not "
+            "leave the dev machine even with redaction. Re-run with "
+            "--include-private=false or drop --centralized-export."
+        )
+
+    # Lazy-import the redactor so local-only exports don't pay the OCR
+    # import cost (and don't fail when OCR isn't installed).
+    policy = None
+    policy_hash: str | None = None
+    redacted_dir: Path | None = None
+    manifest_records: list[dict[str, Any]] = []
+    if centralized_export:
+        from qontinui_finetune.redact import RedactionPolicy, redact_image
+
+        policy = redaction_policy or RedactionPolicy()
+        policy_hash = policy.policy_hash()
+        redacted_dir = output_dir / "redacted-images"
+        redacted_dir.mkdir(parents=True, exist_ok=True)
 
     # Bucket by domain; collect reserved-for-test separately so they
     # don't inflate the ratio split.
@@ -514,6 +593,43 @@ def export_corrections(
                 excluded_missing_image += 1
             continue
 
+        # Defense-in-depth: if a private entry slipped through (e.g. the
+        # guard above was bypassed in tests), re-check here. If we're in
+        # centralized mode, refuse outright.
+        if centralized_export and entry.get("private", False):
+            raise ValueError(
+                "Refusing centralized export: correction entry marked "
+                f"private=True slipped through include_private filter: "
+                f"{entry.get('ts')}"
+            )
+
+        # Redact the image and rewrite the sample's image URI to point
+        # at the redacted copy in <output-dir>/redacted-images/.
+        if centralized_export and redacted_dir is not None and policy is not None:
+            from qontinui_finetune.redact import redact_image
+
+            original_path = Path(entry["image_path"])
+            # Use image_sha when available (deterministic + short);
+            # otherwise hash the absolute path so retries are idempotent.
+            sha_hint = entry.get("image_sha") or hashlib.sha256(
+                str(original_path.resolve()).encode("utf-8")
+            ).hexdigest()[:16]
+            redacted_path = redacted_dir / f"{sha_hint}.png"
+            if not redacted_path.exists():
+                redact_image(
+                    image_path=original_path,
+                    policy=policy,
+                    out_path=redacted_path,
+                )
+            _rewrite_sample_image_uri(sample, redacted_path)
+            manifest_records.append(
+                {
+                    "original_image": str(original_path),
+                    "redacted_image": str(redacted_path),
+                    "policy_hash": policy_hash,
+                }
+            )
+
         target_process = entry.get("target_process", "unknown")
         per_target_process[target_process] += 1
 
@@ -551,16 +667,28 @@ def export_corrections(
         "per_domain_per_split": per_domain_counts,
         "excluded_private": excluded_private,
         "excluded_missing_image": excluded_missing_image,
+        "redacted": centralized_export,
+        "redaction_policy_hash": policy_hash,
+        "redacted_image_count": len(manifest_records),
         "config": {
             "corrections_jsonl": str(corrections_jsonl),
             "output_dir": str(output_dir),
             "include_private": include_private,
             "split": {"train": r_train, "val": r_val, "test": r_test},
             "seed": seed,
+            "centralized_export": centralized_export,
         },
     }
     with (output_dir / "summary.json").open("w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, sort_keys=True)
+
+    # Manifest: one record per redacted sample for downstream audit.
+    # Only emitted in centralized mode — nothing to audit locally.
+    if centralized_export:
+        with (output_dir / "manifest.jsonl").open("w", encoding="utf-8") as f:
+            for record in manifest_records:
+                f.write(json.dumps(record, separators=(",", ":")))
+                f.write("\n")
 
     logger.info(
         "Exported %d samples (train=%d val=%d test=%d) across %d domains",
@@ -582,12 +710,26 @@ def main(argv: list[str] | None = None) -> int:
         format="%(levelname)s %(name)s - %(message)s",
     )
 
+    # Enforce the PII-leak guardrail at the CLI layer: a centralized
+    # export with include_private=True would route private corrections
+    # off-device, defeating the whole point of the privacy flag.
+    # argparse.parser.error() writes to stderr and sys.exits(2).
+    if args.centralized_export and args.include_private:
+        parser.error(
+            "--centralized-export is incompatible with "
+            "--include-private=true: private correction entries must "
+            "not be shipped off the dev machine. Either drop "
+            "--centralized-export (for a local bundle) or re-run with "
+            "--include-private=false (to exclude private entries)."
+        )
+
     summary = export_corrections(
         corrections_jsonl=args.corrections_jsonl,
         output_dir=args.output_dir,
         include_private=args.include_private,
         split=args.split,
         seed=args.seed,
+        centralized_export=args.centralized_export,
     )
 
     # Pretty-print a condensed report to stderr for interactive use.
