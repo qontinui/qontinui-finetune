@@ -377,6 +377,110 @@ Based on qontinui's existing strategies:
 4. Add tests for new functionality
 5. Follow Python best practices (PEP 8, type hints)
 
+## VGA correction-loop daemon
+
+`scripts/correction_loop_daemon.py` (also importable as
+`python -m qontinui_finetune.correction_loop_daemon`) watches the VGA
+correction log, retrains the grounding model when the per-domain budget
+trips, runs shadow evaluation against the baseline, and atomically swaps
+the llama-swap config when the per-domain +5pp ship gate passes.
+
+### Running
+
+- One tick (smoke test / cron): `python scripts/correction_loop_daemon.py --once`
+- Long-running: `python -m qontinui_finetune.correction_loop_daemon --watch`
+
+The default tick interval is 300s. Both the retrain and ship side-effects
+are off by default — the daemon only logs intent until the flags are set.
+
+### Environment flags
+
+| Variable | Default | Effect |
+|---|---|---|
+| `QONTINUI_VGA_CORRECTIONS_DIR` | `datasets/vga-corrections` | Source correction log dir |
+| `QONTINUI_VGA_MODELS_DIR` | `D:/qontinui-root/models` (Win) / `/data/qontinui-root/models` | Where merged models live (bind-mounted into llama-swap as `/models`) |
+| `QONTINUI_VGA_RETRAIN_PER_DOMAIN_BUDGET` | `200` | Any one `target_process` at this count triggers retrain |
+| `QONTINUI_VGA_RETRAIN_AGGREGATE_BUDGET` | `500` | Total corrections across all domains triggering retrain |
+| `QONTINUI_VGA_AUTO_RETRAIN` | `false` | Set to `1`/`true` to spawn real trainer subprocesses |
+| `QONTINUI_VGA_AUTO_SHIP` | `false` | Set to `1`/`true` to run shadow-eval, enforce the ship gate, and swap config |
+| `QONTINUI_VGA_TICK_SECONDS` | `300` | Tick interval in watch mode |
+| `QONTINUI_PG_URL` | – | Postgres URL for shadow-eval; required when `AUTO_SHIP=1` |
+| `QONTINUI_VGA_BASELINE_MODEL` | `qontinui-grounding-v5` | Model the candidate must beat |
+| `QONTINUI_VGA_CANDIDATE_VERSION` | `v6` | Suffix appended to `qontinui-grounding-` |
+| `QONTINUI_VGA_API_BASE` | `http://localhost:8100/v1` | llama-swap OpenAI-compat endpoint |
+| `QONTINUI_VGA_LLAMA_SWAP_CONTAINER` | `llama-swap-llama-swap-1` | Container name for reload (docker restart) |
+| `QONTINUI_VGA_LLAMA_SWAP_CONFIG` | `D:/qontinui-root/qontinui/docker/llama-swap/config.yaml` (Win) | Path to the on-host config.yaml |
+
+### Lifecycle
+
+The daemon is a simple 3-state machine keyed off `.retrain.lock`:
+
+1. **idle** — no lockfile. Gate check runs each tick. When the §13 trigger fires
+   (per-domain ≥200 OR aggregate ≥500) and `QONTINUI_VGA_AUTO_RETRAIN=1`, the
+   daemon runs the exporter synchronously, spawns the trainer as a detached
+   subprocess, and writes `.retrain.lock` with the PID + output dir + log path.
+
+2. **training** — lockfile present, PID alive. Nothing to do. (Training takes
+   ~5h on an RTX 5090 for the default 600-step, 1-epoch LoRA.) Killing the
+   daemon does NOT kill the trainer: the subprocess is spawned with
+   `DETACHED_PROCESS` (Windows) / `start_new_session=True` (Unix).
+
+3. **ready** — lockfile present, PID dead. Daemon applies the
+   `patch_merged_for_vllm.py` compat patches to the merged checkpoint. If the
+   candidate looks healthy and `QONTINUI_VGA_AUTO_SHIP=1`, shadow-eval runs,
+   the strict per-domain gate is enforced, and on pass the config.yaml is
+   atomically rewritten + the llama-swap container restarted.
+
+### Lockfile
+
+`.retrain.lock` JSON blob has: `pid`, `started_at`, `reason`, `output_dir`,
+`log_path`, `dataset_dir`, `candidate_model`, `status`. To clear a stale lock
+(for example, if the daemon crashed mid-retrain and the trainer also died):
+
+```bash
+rm datasets/vga-corrections/.retrain.lock
+```
+
+The daemon will re-evaluate the gate on the next tick. If a merged checkpoint
+is already present under `models_dir/<candidate-model>-candidate/merged/`,
+re-running the retrain will (by default) overwrite it — move it aside first
+if you want to preserve the run.
+
+### Ship history
+
+Every ship decision — pass or block — appends one JSON line to
+`datasets/vga-corrections/.ship-history.jsonl`. Each record has:
+
+```json
+{
+  "ts": "2026-04-21T19:10:22.481+00:00",
+  "shipped": true,
+  "swapped_from": "qontinui-grounding-v5",
+  "swapped_to": "qontinui-grounding-v6",
+  "blocking_domains": [],
+  "reason": "reload-via:docker restart llama-swap-llama-swap-1",
+  "eval_report_path": "datasets/vga-corrections/logs/shadow-eval-20260421T191020Z.json",
+  "report": { "candidate_model": "...", "per_domain_results": {...} }
+}
+```
+
+Inspect with `jq`:
+
+```bash
+tail -20 datasets/vga-corrections/.ship-history.jsonl | jq -c \
+  '{ts, shipped, reason, blocking: (.blocking_domains|length)}'
+```
+
+### llama-swap reload mechanism
+
+llama-swap v201 (current deployment) exposes `POST /unload` and `GET /running`
+but no reload/restart HTTP endpoint, and the daemon is not started with
+`-watch-config`. The ship step therefore runs `docker restart` of the
+llama-swap container to pick up the new config. This drops any loaded
+models (seconds of downtime), so the ship step is best run during low-usage
+windows. Ships are expected to be rare (per plan §13, gated by +5pp on every
+per-domain split).
+
 ## License
 
 TBD - Align with qontinui project license

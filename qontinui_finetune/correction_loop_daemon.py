@@ -19,13 +19,26 @@ if str(_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_DIR))
 
 from correction_loop_daemon import (  # type: ignore[import-not-found]  # noqa: E402
+    CorrectionStats,
     DaemonConfig,
+    RetrainDecision,
+    RetrainStatus,
+    ShipStatus,
     main,
     run_forever,
     tick,
 )
 
-__all__ = ["DaemonConfig", "main", "run_forever", "tick"]
+__all__ = [
+    "CorrectionStats",
+    "DaemonConfig",
+    "RetrainDecision",
+    "RetrainStatus",
+    "ShipStatus",
+    "main",
+    "run_forever",
+    "tick",
+]
 
 
 if __name__ == "__main__":
