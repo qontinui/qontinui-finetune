@@ -340,7 +340,8 @@ def build_training_args(args: argparse.Namespace, output_dir: Path) -> Any:
         gradient_checkpointing=True,
         logging_steps=10,
         eval_strategy="epoch",
-        save_strategy="epoch",
+        save_strategy="steps",
+        save_steps=100,
         save_total_limit=3,
         load_best_model_at_end=False,
         report_to="none",
@@ -390,7 +391,12 @@ def run_training(args: argparse.Namespace) -> None:
     logger.info("Starting training (%d epochs, effective batch %d)", args.epochs, args.batch_size * args.grad_accum)
     t0 = time.time()
 
-    train_result = trainer.train()
+    from transformers.trainer_utils import get_last_checkpoint
+
+    last_checkpoint = get_last_checkpoint(str(output_dir / "checkpoints"))
+    if last_checkpoint is not None:
+        logger.info("Resuming from checkpoint: %s", last_checkpoint)
+    train_result = trainer.train(resume_from_checkpoint=last_checkpoint)
 
     elapsed = time.time() - t0
     logger.info(
