@@ -25,7 +25,6 @@ qontinui-schemas = {path = "../qontinui-schemas", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3"
-black = "^24.10"
 ruff = "^0.14"
 mypy = "^1.14"
 pre-commit = "^4.4"
