@@ -90,9 +90,8 @@ class GroundingPRM:
         if dim is None:
             cfg = self.backbone.config
             # CLIP exposes projection_dim; generic models expose hidden_size.
-            dim = (
-                getattr(cfg, "projection_dim", None)
-                or getattr(cfg, "hidden_size", None)
+            dim = getattr(cfg, "projection_dim", None) or getattr(
+                cfg, "hidden_size", None
             )
             if dim is None:
                 raise ValueError(

@@ -211,7 +211,9 @@ class PRMDataset:
         total = 0
 
         jsonl_paths = [self.grounding_jsonl]
-        jsonl_paths.extend(sorted(self.grounding_jsonl.parent.glob("grounding.*.jsonl")))
+        jsonl_paths.extend(
+            sorted(self.grounding_jsonl.parent.glob("grounding.*.jsonl"))
+        )
 
         for path in jsonl_paths:
             if not path.exists():

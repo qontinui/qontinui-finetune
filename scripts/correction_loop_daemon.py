@@ -283,16 +283,14 @@ def _evaluate_retrain_gate(
         return RetrainDecision(
             should_retrain=True,
             reason=(
-                f"aggregate-budget: total={stats.total} "
-                f">= {config.aggregate_budget}"
+                f"aggregate-budget: total={stats.total} >= {config.aggregate_budget}"
             ),
             stats=stats,
         )
     return RetrainDecision(
         should_retrain=False,
         reason=(
-            f"below-thresholds: total={stats.total} "
-            f"max_domain={stats.max_domain_count}"
+            f"below-thresholds: total={stats.total} max_domain={stats.max_domain_count}"
         ),
         stats=stats,
     )
@@ -786,8 +784,7 @@ def _atomic_swap_llama_swap_config(
 
         if not found_placeholder:
             logger.warning(
-                "no placeholder block for %s in config.yaml; "
-                "appending a minimal entry",
+                "no placeholder block for %s in config.yaml; appending a minimal entry",
                 candidate_block_name,
             )
             # Append a minimal entry so YAML re-parse lands it.
@@ -1103,7 +1100,7 @@ def tick(config: DaemonConfig) -> None:
     lock = _check_retrain_lock(config)
 
     logger.info(
-        "tick @%s total=%d per_domain=%s decision=%s reason=%s " "lock=%s pid_alive=%s",
+        "tick @%s total=%d per_domain=%s decision=%s reason=%s lock=%s pid_alive=%s",
         datetime.now(UTC).isoformat(),
         stats.total,
         dict(stats.per_target_process),

@@ -116,7 +116,10 @@ class PRMInferencer:
             return []
 
         torch = self._torch
-        texts = [f"{i} → {g}" for i, g in zip(instructions, predicted_groundings, strict=True)]
+        texts = [
+            f"{i} → {g}"
+            for i, g in zip(instructions, predicted_groundings, strict=True)
+        ]
         enc = self.processor(
             text=texts,
             images=images,

@@ -70,6 +70,7 @@ def _inject_shadow_eval(return_value: Any):
             else:
                 sys.modules[name] = mod
 
+
 # ---------------------------------------------------------------------------
 # Shared fixtures
 # ---------------------------------------------------------------------------
@@ -247,18 +248,18 @@ class TestRetrainTick:
                 self.pid = FakePopen._next_pid
                 FakePopen._next_pid += 1
 
-        with patch.object(
-            daemon_mod.subprocess, "run", side_effect=fake_run
-        ), patch.object(
-            daemon_mod.subprocess, "Popen", FakePopen
-        ), patch.object(
-            daemon_mod, "_is_pid_alive", return_value=True
+        with (
+            patch.object(daemon_mod.subprocess, "run", side_effect=fake_run),
+            patch.object(daemon_mod.subprocess, "Popen", FakePopen),
+            patch.object(daemon_mod, "_is_pid_alive", return_value=True),
         ):
             tick(config)
 
         # Exporter was invoked.
         assert len(exporter_calls) == 1
-        assert any("export_corrections_to_vlm_sft.py" in arg for arg in exporter_calls[0])
+        assert any(
+            "export_corrections_to_vlm_sft.py" in arg for arg in exporter_calls[0]
+        )
         assert "--corrections-jsonl" in exporter_calls[0]
         assert "--include-private" in exporter_calls[0]
 
@@ -277,9 +278,7 @@ class TestRetrainTick:
         assert lock["status"] == "training"
         assert lock["candidate_model"] == "qontinui-grounding-v6"
 
-    def test_second_tick_while_training_is_a_noop(
-        self, tmp_path: Path
-    ) -> None:
+    def test_second_tick_while_training_is_a_noop(self, tmp_path: Path) -> None:
         _seed_high_correction_count(tmp_path)
         config = _make_config(tmp_path, auto_retrain=True)
 
@@ -308,17 +307,16 @@ class TestRetrainTick:
             m.pid = 0
             return m
 
-        with patch.object(
-            daemon_mod.subprocess, "Popen", side_effect=fake_popen
-        ), patch.object(daemon_mod, "_is_pid_alive", return_value=True):
+        with (
+            patch.object(daemon_mod.subprocess, "Popen", side_effect=fake_popen),
+            patch.object(daemon_mod, "_is_pid_alive", return_value=True),
+        ):
             tick(config)
 
         # No new trainer spawned.
         assert popen_calls == []
         # Lockfile still present and unmodified pid.
-        lock = json.loads(
-            (config.corrections_dir / ".retrain.lock").read_text()
-        )
+        lock = json.loads((config.corrections_dir / ".retrain.lock").read_text())
         assert lock["pid"] == 99999
 
 
@@ -434,15 +432,17 @@ class TestShipTick:
         )
 
         reload_calls: list[Any] = []
-        with patch.object(
-            daemon_mod, "_is_pid_alive", return_value=False
-        ), patch.object(
-            daemon_mod, "_apply_post_merge_patches", return_value=True
-        ), _inject_shadow_eval(
-            return_value=failing_report,
-        ), patch.object(
-            daemon_mod, "_reload_llama_swap",
-            side_effect=lambda c: reload_calls.append(c),
+        with (
+            patch.object(daemon_mod, "_is_pid_alive", return_value=False),
+            patch.object(daemon_mod, "_apply_post_merge_patches", return_value=True),
+            _inject_shadow_eval(
+                return_value=failing_report,
+            ),
+            patch.object(
+                daemon_mod,
+                "_reload_llama_swap",
+                side_effect=lambda c: reload_calls.append(c),
+            ),
         ):
             tick(config)
 
@@ -485,15 +485,17 @@ class TestShipTick:
 
         reload_calls: list[Any] = []
 
-        with patch.object(
-            daemon_mod, "_is_pid_alive", return_value=False
-        ), patch.object(
-            daemon_mod, "_apply_post_merge_patches", return_value=True
-        ), _inject_shadow_eval(
-            return_value=passing_report,
-        ), patch.object(
-            daemon_mod, "_reload_llama_swap",
-            side_effect=lambda c: (reload_calls.append(c), "fake-reload")[1],
+        with (
+            patch.object(daemon_mod, "_is_pid_alive", return_value=False),
+            patch.object(daemon_mod, "_apply_post_merge_patches", return_value=True),
+            _inject_shadow_eval(
+                return_value=passing_report,
+            ),
+            patch.object(
+                daemon_mod,
+                "_reload_llama_swap",
+                side_effect=lambda c: (reload_calls.append(c), "fake-reload")[1],
+            ),
         ):
             tick(config)
 
@@ -546,10 +548,9 @@ class TestShipTick:
 
         original_yaml = config.llama_swap_config.read_text()
 
-        with patch.object(
-            daemon_mod, "_is_pid_alive", return_value=False
-        ), patch.object(
-            daemon_mod, "_apply_post_merge_patches", return_value=True
+        with (
+            patch.object(daemon_mod, "_is_pid_alive", return_value=False),
+            patch.object(daemon_mod, "_apply_post_merge_patches", return_value=True),
         ):
             tick(config)
 
@@ -561,8 +562,9 @@ class TestShipTick:
     def test_missing_merged_config_clears_lock(self, tmp_path: Path) -> None:
         """Trainer died without producing a merged checkpoint."""
         _seed_high_correction_count(tmp_path)
-        config = _make_config(tmp_path, auto_retrain=True, auto_ship=True,
-                              pg_url="postgresql://u:p@h/x")
+        config = _make_config(
+            tmp_path, auto_retrain=True, auto_ship=True, pg_url="postgresql://u:p@h/x"
+        )
 
         # Lockfile with dead PID but NO merged/config.json.
         config.candidate_output_dir.mkdir(parents=True, exist_ok=True)

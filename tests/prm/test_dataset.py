@@ -122,9 +122,7 @@ class TestLabelPolicy:
 
 class TestGroundingSerialisation:
     def test_bbox_normalises_to_point_string(self) -> None:
-        ex = record_to_example(
-            _make_record("wsm", True, bbox=[500, 250, 100, 50])
-        )
+        ex = record_to_example(_make_record("wsm", True, bbox=[500, 250, 100, 50]))
         assert ex is not None
         # Center: (550, 275) / (1000, 500) → (0.55, 0.55)
         assert ex.predicted_grounding == "<point>0.55 0.55</point>"
@@ -147,9 +145,7 @@ class TestGroundingSerialisation:
         assert ex.instruction == "type 'hello'"
 
     def test_type_instruction_without_text(self) -> None:
-        ex = record_to_example(
-            _make_record("wsm", True, action_type="type")
-        )
+        ex = record_to_example(_make_record("wsm", True, action_type="type"))
         assert ex is not None
         assert ex.instruction == "type the text"
 
@@ -165,8 +161,8 @@ class TestPRMDataset:
             _make_record("wsm", True),
             _make_record("pixel_diff", False),
             _make_record("record_flag", True),
-            _make_record(None, True),            # skip
-            _make_record("unknown_src", True),   # skip
+            _make_record(None, True),  # skip
+            _make_record("unknown_src", True),  # skip
         ]
         # Add a static record (no action at all)
         static = _make_record("wsm", True)

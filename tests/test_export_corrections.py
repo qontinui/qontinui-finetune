@@ -83,16 +83,22 @@ def corrections_dir(tmp_path: Path) -> Path:
 
     entries = [
         _make_entry(
-            image_path=img_a, prompt="Save button",
-            target_process="notepad++.exe", private=False,
+            image_path=img_a,
+            prompt="Save button",
+            target_process="notepad++.exe",
+            private=False,
         ),
         _make_entry(
-            image_path=img_b, prompt="Open menu",
-            target_process="notepad++.exe", private=False,
+            image_path=img_b,
+            prompt="Open menu",
+            target_process="notepad++.exe",
+            private=False,
         ),
         _make_entry(
-            image_path=img_c, prompt="Scene panel",
-            target_process="obs64.exe", private=True,
+            image_path=img_c,
+            prompt="Scene panel",
+            target_process="obs64.exe",
+            private=True,
         ),
     ]
 
@@ -164,8 +170,10 @@ def test_stratified_split_covers_every_domain(tmp_path: Path) -> None:
         _make_png(img)
         entries.append(
             _make_entry(
-                image_path=img, prompt=f"Element {i}",
-                target_process="notepad++.exe", private=False,
+                image_path=img,
+                prompt=f"Element {i}",
+                target_process="notepad++.exe",
+                private=False,
             )
         )
     for i in range(3):
@@ -173,8 +181,10 @@ def test_stratified_split_covers_every_domain(tmp_path: Path) -> None:
         _make_png(img)
         entries.append(
             _make_entry(
-                image_path=img, prompt=f"Element {i}",
-                target_process="obs64.exe", private=False,
+                image_path=img,
+                prompt=f"Element {i}",
+                target_process="obs64.exe",
+                private=False,
             )
         )
 
@@ -217,8 +227,10 @@ def test_test_reserved_entries_always_go_to_test(tmp_path: Path) -> None:
         _make_png(img)
         entries.append(
             _make_entry(
-                image_path=img, prompt=f"E{i}",
-                target_process="notepad++.exe", private=False,
+                image_path=img,
+                prompt=f"E{i}",
+                target_process="notepad++.exe",
+                private=False,
             )
         )
     # 1 reserved-for-test entry.
@@ -226,8 +238,10 @@ def test_test_reserved_entries_always_go_to_test(tmp_path: Path) -> None:
     _make_png(reserved_img)
     entries.append(
         _make_entry(
-            image_path=reserved_img, prompt="Reserved holdout",
-            target_process="notepad++.exe", private=False,
+            image_path=reserved_img,
+            prompt="Reserved holdout",
+            target_process="notepad++.exe",
+            private=False,
             test_reserved=True,
         )
     )
@@ -273,12 +287,16 @@ def test_missing_image_is_skipped_with_warning(
 
     entries = [
         _make_entry(
-            image_path=img_present, prompt="Exists",
-            target_process="notepad++.exe", private=False,
+            image_path=img_present,
+            prompt="Exists",
+            target_process="notepad++.exe",
+            private=False,
         ),
         _make_entry(
-            image_path=img_missing, prompt="Ghost",
-            target_process="notepad++.exe", private=False,
+            image_path=img_missing,
+            prompt="Ghost",
+            target_process="notepad++.exe",
+            private=False,
         ),
     ]
 
@@ -300,9 +318,9 @@ def test_missing_image_is_skipped_with_warning(
 
     assert summary["total_samples"] == 1
     assert summary["excluded_missing_image"] == 1
-    assert any(
-        "Image not found" in record.getMessage() for record in caplog.records
-    ), "Expected warning about missing image"
+    assert any("Image not found" in record.getMessage() for record in caplog.records), (
+        "Expected warning about missing image"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -354,6 +372,7 @@ def test_sample_shape_matches_trainer_expectation(
 
         # Parse the assistant point: must be two ints in [0, 1000].
         import re
+
         m = re.search(r"<point>\s*(\d+)\s+(\d+)\s*</point>", asst_msg["content"])
         assert m, f"Could not parse point from {asst_msg['content']!r}"
         nx, ny = int(m.group(1)), int(m.group(2))

@@ -92,7 +92,9 @@ def _pick_font(size: int):
 
 
 @pytest.fixture
-def synthetic_image(tmp_path: Path) -> tuple[Path, tuple[int, int, int, int], tuple[int, int, int, int]]:
+def synthetic_image(
+    tmp_path: Path,
+) -> tuple[Path, tuple[int, int, int, int], tuple[int, int, int, int]]:
     """Render a 512x256 image with a short "Save" label and a long body.
 
     Returns ``(image_path, save_bbox, body_bbox)`` where the bboxes are

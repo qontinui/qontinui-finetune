@@ -184,9 +184,15 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         help="Directory where prm_checkpoint.pt and processor/ are written.",
     )
-    parser.add_argument("--epochs", type=int, default=3, help="Number of training epochs.")
-    parser.add_argument("--lr", type=float, default=1e-4, help="Learning rate for the head.")
-    parser.add_argument("--batch-size", type=int, default=16, help="Per-device batch size.")
+    parser.add_argument(
+        "--epochs", type=int, default=3, help="Number of training epochs."
+    )
+    parser.add_argument(
+        "--lr", type=float, default=1e-4, help="Learning rate for the head."
+    )
+    parser.add_argument(
+        "--batch-size", type=int, default=16, help="Per-device batch size."
+    )
     parser.add_argument(
         "--backbone",
         default=None,

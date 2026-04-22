@@ -53,22 +53,38 @@ def test_parse_args_accepts_all_rl_flags() -> None:
     rl = _load_rl_module()
     args = rl.parse_args(
         [
-            "--train-data", "train.jsonl",
-            "--model", "ByteDance-Seed/UI-TARS-1.5-7B",
-            "--sft-adapter", "/tmp/sft/merged",
-            "--prm-checkpoint", "/tmp/prm/prm_checkpoint.pt",
-            "--output-dir", "/tmp/rl-out",
-            "--num-rollouts", "4",
-            "--grpo-beta", "0.1",
-            "--step-reward-weight", "0.25",
-            "--tolerance", "0.03",
-            "--epochs", "2",
-            "--lr", "5e-6",
-            "--batch-size", "1",
-            "--grad-accum", "4",
-            "--lora-r", "8",
-            "--lora-alpha", "16",
-            "--seed", "7",
+            "--train-data",
+            "train.jsonl",
+            "--model",
+            "ByteDance-Seed/UI-TARS-1.5-7B",
+            "--sft-adapter",
+            "/tmp/sft/merged",
+            "--prm-checkpoint",
+            "/tmp/prm/prm_checkpoint.pt",
+            "--output-dir",
+            "/tmp/rl-out",
+            "--num-rollouts",
+            "4",
+            "--grpo-beta",
+            "0.1",
+            "--step-reward-weight",
+            "0.25",
+            "--tolerance",
+            "0.03",
+            "--epochs",
+            "2",
+            "--lr",
+            "5e-6",
+            "--batch-size",
+            "1",
+            "--grad-accum",
+            "4",
+            "--lora-r",
+            "8",
+            "--lora-alpha",
+            "16",
+            "--seed",
+            "7",
         ]
     )
     assert args.sft_adapter == "/tmp/sft/merged"
@@ -87,9 +103,7 @@ def test_parse_args_accepts_all_rl_flags() -> None:
 
 def test_require_sft_adapter_flag_is_accepted() -> None:
     rl = _load_rl_module()
-    args = rl.parse_args(
-        ["--train-data", "train.jsonl", "--require-sft-adapter"]
-    )
+    args = rl.parse_args(["--train-data", "train.jsonl", "--require-sft-adapter"])
     assert args.require_sft_adapter is True
 
 

@@ -628,9 +628,9 @@ class DatasetStatistics:
             stats["annotations_stats"] = annotations_stats
 
         # Print summary
-        logger.info(f"\n{'='*60}")
+        logger.info(f"\n{'=' * 60}")
         logger.info("Dataset Statistics Summary")
-        logger.info(f"{'='*60}")
+        logger.info(f"{'=' * 60}")
         logger.info(f"Total Images: {stats['num_images']}")
         logger.info(f"Total Annotations: {num_annotations}")
         logger.info("\nClass Distribution:")
@@ -646,7 +646,7 @@ class DatasetStatistics:
         logger.info(f"  Median: {annotations_stats['median']:.2f}")
         logger.info(f"  Max: {int(annotations_stats['max'])}")
         logger.info(f"  Min: {int(annotations_stats['min'])}")
-        logger.info(f"{'='*60}\n")
+        logger.info(f"{'=' * 60}\n")
 
         # Save statistics to JSON
         output_file = self.dataset_path / "statistics.json"
@@ -655,7 +655,9 @@ class DatasetStatistics:
             k: (
                 v
                 if not isinstance(v, (np.integer, np.floating, np.ndarray))
-                else v.tolist() if isinstance(v, np.ndarray) else float(v)
+                else v.tolist()
+                if isinstance(v, np.ndarray)
+                else float(v)
             )
             for k, v in stats.items()
             if k not in ["bbox_sizes", "image_sizes", "annotations_per_image"]
