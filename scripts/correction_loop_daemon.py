@@ -324,9 +324,7 @@ def _is_pid_alive(pid: int) -> bool:
         PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
         STILL_ACTIVE = 259
         kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
-        handle = kernel32.OpenProcess(
-            PROCESS_QUERY_LIMITED_INFORMATION, False, pid
-        )
+        handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
         if not handle:
             return False
         try:
@@ -506,9 +504,7 @@ def _spawn_trainer_detached(
         # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP — survives daemon exit.
         DETACHED_PROCESS = 0x00000008
         CREATE_NEW_PROCESS_GROUP = 0x00000200
-        popen_kwargs["creationflags"] = (
-            DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
-        )
+        popen_kwargs["creationflags"] = DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
         popen_kwargs["close_fds"] = True
     else:
         # start_new_session puts the child in its own session, so SIGINT
@@ -521,9 +517,7 @@ def _spawn_trainer_detached(
     return proc.pid
 
 
-def _trigger_retrain(
-    config: DaemonConfig, decision: RetrainDecision
-) -> RetrainStatus:
+def _trigger_retrain(config: DaemonConfig, decision: RetrainDecision) -> RetrainStatus:
     """Orchestrate an async v6 retrain. Returns immediately.
 
     Steps:
@@ -758,9 +752,8 @@ def _atomic_swap_llama_swap_config(
         for line in lines:
             stripped_left = line.lstrip()
             # Recognise the placeholder start: a commented `<name>:` line.
-            if (
-                not in_placeholder
-                and stripped_left.startswith(f"# {candidate_block_name}:")
+            if not in_placeholder and stripped_left.startswith(
+                f"# {candidate_block_name}:"
             ):
                 in_placeholder = True
                 found_placeholder = True
@@ -828,9 +821,7 @@ def _atomic_swap_llama_swap_config(
         # Remove bare alias from baseline.
         baseline_entry = data["models"].get(config.baseline_model, {})
         baseline_aliases = [
-            a
-            for a in baseline_entry.get("aliases", [])
-            if a != "qontinui-grounding"
+            a for a in baseline_entry.get("aliases", []) if a != "qontinui-grounding"
         ]
         baseline_entry["aliases"] = baseline_aliases
         data["models"][config.baseline_model] = baseline_entry
@@ -907,8 +898,7 @@ def _append_ship_history(
         "swapped_from": status.swapped_from,
         "swapped_to": status.swapped_to,
         "blocking_domains": [
-            {"target_process": tp, "delta_pp": dp}
-            for tp, dp in status.blocking_domains
+            {"target_process": tp, "delta_pp": dp} for tp, dp in status.blocking_domains
         ],
         "reason": status.reason,
         "eval_report_path": (
@@ -926,9 +916,7 @@ def _append_ship_history(
         f.write("\n")
 
 
-def _trigger_ship(
-    config: DaemonConfig, candidate_dir: Path
-) -> ShipStatus:
+def _trigger_ship(config: DaemonConfig, candidate_dir: Path) -> ShipStatus:
     """Run shadow-eval + enforce gate + atomic swap llama-swap config.
 
     Strict gate: every per-domain delta must be ≥ +5pp AND no regression.
@@ -1115,8 +1103,7 @@ def tick(config: DaemonConfig) -> None:
     lock = _check_retrain_lock(config)
 
     logger.info(
-        "tick @%s total=%d per_domain=%s decision=%s reason=%s "
-        "lock=%s pid_alive=%s",
+        "tick @%s total=%d per_domain=%s decision=%s reason=%s " "lock=%s pid_alive=%s",
         datetime.now(UTC).isoformat(),
         stats.total,
         dict(stats.per_target_process),

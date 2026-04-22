@@ -156,9 +156,9 @@ def _image_path_from_sample(sample: dict[str, Any]) -> str | None:
                     if part.get("type") == "image":
                         raw = str(part.get("image", ""))
                         if raw.startswith("file:///"):
-                            return raw[len("file:///"):]
+                            return raw[len("file:///") :]
                         if raw.startswith("file://"):
-                            return raw[len("file://"):]
+                            return raw[len("file://") :]
                         return raw
     return None
 
@@ -639,7 +639,9 @@ def _build_parser() -> argparse.ArgumentParser:
     # Training knobs
     parser.add_argument("--epochs", type=int, default=1, help="RL epochs.")
     parser.add_argument("--lr", type=float, default=1e-5, help="Learning rate.")
-    parser.add_argument("--batch-size", type=int, default=1, help="Per-device batch size.")
+    parser.add_argument(
+        "--batch-size", type=int, default=1, help="Per-device batch size."
+    )
     parser.add_argument(
         "--grad-accum",
         type=int,

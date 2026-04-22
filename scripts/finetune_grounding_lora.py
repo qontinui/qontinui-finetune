@@ -388,7 +388,11 @@ def run_training(args: argparse.Namespace) -> None:
         data_collator=collator,
     )
 
-    logger.info("Starting training (%d epochs, effective batch %d)", args.epochs, args.batch_size * args.grad_accum)
+    logger.info(
+        "Starting training (%d epochs, effective batch %d)",
+        args.epochs,
+        args.batch_size * args.grad_accum,
+    )
     t0 = time.time()
 
     from transformers.trainer_utils import get_last_checkpoint
@@ -546,7 +550,12 @@ def main() -> None:
     logger.info("Output dir   : %s", args.output_dir)
     logger.info("Epochs       : %d", args.epochs)
     logger.info("LR           : %g", args.lr)
-    logger.info("Batch size   : %d (x%d accum = %d effective)", args.batch_size, args.grad_accum, args.batch_size * args.grad_accum)
+    logger.info(
+        "Batch size   : %d (x%d accum = %d effective)",
+        args.batch_size,
+        args.grad_accum,
+        args.batch_size * args.grad_accum,
+    )
     logger.info("LoRA r/alpha : %d / %d", args.lora_r, args.lora_alpha)
     logger.info("Seed         : %d", args.seed)
 

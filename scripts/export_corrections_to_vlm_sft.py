@@ -433,12 +433,7 @@ def _stratified_split(
         ):
             n_val = 1
         n_test_planned = n - n_train - n_val
-        if (
-            _r_test > 0
-            and n_test_planned == 0
-            and n - n_train - n_val > 0
-            and n >= 3
-        ):
+        if _r_test > 0 and n_test_planned == 0 and n - n_train - n_val > 0 and n >= 3:
             # Steal one from val (not train) when possible.
             if n_val > 0:
                 n_val -= 1
@@ -611,9 +606,12 @@ def export_corrections(
             original_path = Path(entry["image_path"])
             # Use image_sha when available (deterministic + short);
             # otherwise hash the absolute path so retries are idempotent.
-            sha_hint = entry.get("image_sha") or hashlib.sha256(
-                str(original_path.resolve()).encode("utf-8")
-            ).hexdigest()[:16]
+            sha_hint = (
+                entry.get("image_sha")
+                or hashlib.sha256(
+                    str(original_path.resolve()).encode("utf-8")
+                ).hexdigest()[:16]
+            )
             redacted_path = redacted_dir / f"{sha_hint}.png"
             if not redacted_path.exists():
                 redact_image(

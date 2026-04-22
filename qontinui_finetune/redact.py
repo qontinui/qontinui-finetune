@@ -277,10 +277,7 @@ def redact_image(
         if conf < policy.min_confidence:
             continue
         stripped = text.strip()
-        if (
-            policy.preserve_ui_labels
-            and 0 < len(stripped) < policy.max_ui_label_chars
-        ):
+        if policy.preserve_ui_labels and 0 < len(stripped) < policy.max_ui_label_chars:
             preserved += 1
             continue
         # Draw the opaque rectangle over the text region.

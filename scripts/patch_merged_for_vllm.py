@@ -32,7 +32,9 @@ def patch_tokenizer_config(path: Path) -> bool:
         data["extra_special_tokens"] = {}
         changed = True
     if changed:
-        path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+        path.write_text(
+            json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
     return changed
 
 
