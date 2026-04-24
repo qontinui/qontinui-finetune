@@ -60,7 +60,7 @@ def _extract_text(content: list[dict[str, Any]]) -> str:
     """Return the text part of a user or assistant message."""
     for part in content:
         if part.get("type") == "text":
-            return part["text"]
+            return str(part["text"])
     # Fallback: if content is a plain string (assistant turn)
     if isinstance(content, str):
         return content
@@ -236,7 +236,7 @@ class GroundingCollator:
                 labels[i, :] = IGNORE_INDEX
 
         encoding["labels"] = labels
-        return encoding
+        return dict(encoding)  # type: ignore[return-value]
 
 
 # ---------------------------------------------------------------------------

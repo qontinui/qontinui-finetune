@@ -11,8 +11,8 @@ from typing import Any
 
 import pytest
 
-torch = pytest.importorskip("torch")
-
+pytest.importorskip("torch")
+import torch  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Test fixtures: fake backbone + fake processor
@@ -46,7 +46,7 @@ class _FakeBackbone(torch.nn.Module):
         text = torch.ones(batch, 8) * 0.5
         return _FakeBackboneOutput(image, text)
 
-    def to(self, device: Any) -> _FakeBackbone:  # noqa: D401 — torch protocol
+    def to(self, *args: Any, **kwargs: Any) -> _FakeBackbone:  # type: ignore[override]
         return self
 
 

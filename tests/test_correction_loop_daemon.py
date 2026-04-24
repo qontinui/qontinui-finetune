@@ -485,6 +485,10 @@ class TestShipTick:
 
         reload_calls: list[Any] = []
 
+        def _fake_reload(c: Any) -> str:
+            reload_calls.append(c)
+            return "fake-reload"
+
         with (
             patch.object(daemon_mod, "_is_pid_alive", return_value=False),
             patch.object(daemon_mod, "_apply_post_merge_patches", return_value=True),
@@ -494,7 +498,7 @@ class TestShipTick:
             patch.object(
                 daemon_mod,
                 "_reload_llama_swap",
-                side_effect=lambda c: (reload_calls.append(c), "fake-reload")[1],
+                side_effect=_fake_reload,
             ),
         ):
             tick(config)

@@ -208,7 +208,8 @@ def _read_image_dimensions(image_path: Path) -> tuple[int, int] | None:
 
     try:
         with Image.open(image_path) as im:
-            return im.size  # (width, height)
+            w, h = im.size
+            return (w, h)
     except (OSError, ValueError) as exc:
         logger.warning("Cannot open image %s: %s", image_path, exc)
         return None
