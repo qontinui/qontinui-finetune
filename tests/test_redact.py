@@ -179,13 +179,13 @@ def test_preserve_ui_labels_true_keeps_short_masks_long(
 
     assert out_path.exists()
     # "Save" region should NOT be mostly black — label preserved.
-    assert not _region_is_blacked_out(out_path, save_bbox, threshold=0.5), (
-        "Short 'Save' label should be preserved with preserve_ui_labels=True"
-    )
+    assert not _region_is_blacked_out(
+        out_path, save_bbox, threshold=0.5
+    ), "Short 'Save' label should be preserved with preserve_ui_labels=True"
     # Body region should be mostly black — long text masked.
-    assert _region_is_blacked_out(out_path, body_bbox, threshold=0.3), (
-        "Long body text should be blacked out with preserve_ui_labels=True"
-    )
+    assert _region_is_blacked_out(
+        out_path, body_bbox, threshold=0.3
+    ), "Long body text should be blacked out with preserve_ui_labels=True"
 
 
 # ---------------------------------------------------------------------------
@@ -208,12 +208,12 @@ def test_preserve_ui_labels_false_masks_all(
     )
 
     assert out_path.exists()
-    assert _region_is_blacked_out(out_path, save_bbox, threshold=0.3), (
-        "Save label should be masked when preserve_ui_labels=False"
-    )
-    assert _region_is_blacked_out(out_path, body_bbox, threshold=0.3), (
-        "Body text should be masked when preserve_ui_labels=False"
-    )
+    assert _region_is_blacked_out(
+        out_path, save_bbox, threshold=0.3
+    ), "Save label should be masked when preserve_ui_labels=False"
+    assert _region_is_blacked_out(
+        out_path, body_bbox, threshold=0.3
+    ), "Body text should be masked when preserve_ui_labels=False"
 
 
 # ---------------------------------------------------------------------------
@@ -338,9 +338,9 @@ def test_centralized_export_refuses_include_private_via_cli(tmp_path: Path) -> N
         text=True,
     )
     # argparse.parser.error() exits with 2.
-    assert result.returncode == 2, (
-        f"Expected exit 2, got {result.returncode}. stderr={result.stderr!r}"
-    )
+    assert (
+        result.returncode == 2
+    ), f"Expected exit 2, got {result.returncode}. stderr={result.stderr!r}"
     combined = result.stderr + result.stdout
     assert "centralized-export" in combined or "include-private" in combined
 

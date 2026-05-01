@@ -654,10 +654,8 @@ class DatasetStatistics:
         stats_json = {
             k: (
                 v
-                if not isinstance(v, (np.integer, np.floating, np.ndarray))
-                else v.tolist()
-                if isinstance(v, np.ndarray)
-                else float(v)
+                if not isinstance(v, np.integer | np.floating | np.ndarray)
+                else v.tolist() if isinstance(v, np.ndarray) else float(v)
             )
             for k, v in stats.items()
             if k not in ["bbox_sizes", "image_sizes", "annotations_per_image"]

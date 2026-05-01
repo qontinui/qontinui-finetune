@@ -263,9 +263,9 @@ def test_test_reserved_entries_always_go_to_test(tmp_path: Path) -> None:
         seed=42,
     )
 
-    assert summary["per_split"]["test"] >= 1, (
-        "reserved entry did not route to test split"
-    )
+    assert (
+        summary["per_split"]["test"] >= 1
+    ), "reserved entry did not route to test split"
 
 
 # ---------------------------------------------------------------------------
@@ -318,9 +318,9 @@ def test_missing_image_is_skipped_with_warning(
 
     assert summary["total_samples"] == 1
     assert summary["excluded_missing_image"] == 1
-    assert any("Image not found" in record.getMessage() for record in caplog.records), (
-        "Expected warning about missing image"
-    )
+    assert any(
+        "Image not found" in record.getMessage() for record in caplog.records
+    ), "Expected warning about missing image"
 
 
 # ---------------------------------------------------------------------------
