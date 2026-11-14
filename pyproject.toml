@@ -19,7 +19,9 @@ accelerate = "^1.0"
 # trl >=0.15 required for GRPOTrainer (scripts/finetune_grounding_rl.py);
 # we pin ^0.18 to track the stable API surface used by the RL polish stage.
 trl = "^0.18"
-qontinui = {path = "../qontinui", develop = true}
+# [ml]: core moved its ML stack (torch, easyocr, ultralytics, ...) into an optional extra
+# that a path dependency does not inherit; request it so the lock keeps what core used to carry.
+qontinui = {path = "../qontinui", develop = true, extras = ["ml"]}
 qontinui-train = {path = "../qontinui-train", develop = true}
 qontinui-schemas = {path = "../qontinui-schemas", develop = true}
 
